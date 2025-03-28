@@ -3,9 +3,9 @@
 FLIM project common functions. This module provides functions to
 read and preprocess the data, and the models used for our analysis.
 All computation uses the same ``RANDOM_STATE`` by seeding the numpy
-library with it. Other computations that need to be done several for
-averaging are done ``N_REPEATS`` times. The estimators used are
-accessible via the ``MODELS`` dictionary.
+library with it. Other computations that need to be done several
+times for averaging are done ``N_REPEATS`` times. The estimators used
+are accessible via the ``MODELS`` dictionary.
 
 See ***DOI PAPER.
 
@@ -22,6 +22,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn import linear_model as lm
 
 
+DEFAULT_DF_PATH = "flimdf.json"
 RANDOM_STATE = 1
 N_REPEATS = 10
 TEST_SIZE = 0.2
@@ -69,7 +70,7 @@ def err(s: str) -> None:
         file=sys.stderr)
 
 
-def read_flim_df(path: str) -> pd.DataFrame:
+def read_flim_df(path: str = DEFAULT_DF_PATH) -> pd.DataFrame:
   """
   Read the FLIM data from JSON file.
 
@@ -150,7 +151,7 @@ def _uniform_counts_size(df: pd.DataFrame) -> pd.DataFrame:
   return df
 
 
-def load_processed_flim(path: str = "flimdf.json") -> pd.DataFrame:
+def load_processed_flim(path: str = DEFAULT_DF_PATH) -> pd.DataFrame:
   """
   Load the dataset, filter out bad batches and make sure every row
   has the same time and counts size.
