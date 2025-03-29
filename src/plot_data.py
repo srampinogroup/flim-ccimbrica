@@ -3,13 +3,13 @@
 This module is used to do most of the plots for the project. Some are
 also done by ``lr_test`` and ``nn_test``, and the exponential fit is
 in module ``fit_decay``.
-
 """
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
+
 import flim
 import lr_test
 from plot_util import slug_figure_name, setup_defaults
@@ -19,7 +19,6 @@ from plot_util import OUT_PATH, FIG_WIDTH, FIG_HEIGHT
 def plot_feature_importances(df: pd.DataFrame) -> None:
   """
   Plot forest estimator feature importance from FLIM dataset.
-
   """
   x_train, _xt, y_train, _yt = train_test_split(
       df[flim.FEATURES], df["dosage"],
@@ -35,7 +34,6 @@ def _plot_fi_model(model, names: list[str]) -> None:
   Plot a bar plot depicting importance of features in provided
   model. ``model`` must have ``feature_importances_`` and
   ``estimators_`` properties.
-
   """
   fi = model.feature_importances_
   sorted_indices = np.argsort(fi)
@@ -51,7 +49,6 @@ def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
   """
   Generate target-label-dependant R² score for provided label,
   that is ``exposure`` or ``concentration``.'
-
   """
   if fixed_label == "exposure":
     ylbl = "concentration"
@@ -100,7 +97,6 @@ def plot_lr_test() -> None:
   """
   Plot ``lr_test`` results, that is R² scores for each model on
   different tests (fixed concentration, dosage, etc).
-
   """
   lr_results = lr_test.load_results()
 
@@ -146,13 +142,12 @@ def main() -> None:
   """
   Plot R² scores for fixed exposure and concentration, feature
   importances and the results of ``lr_test``.
-
   """
   setup_defaults()
-  # df = flim.load_and_add_all()
-  # plot_r2_fixed(df, "exposure")
-  # plot_r2_fixed(df, "concentration")
-  # plot_feature_importances(df)
+  df = flim.load_and_add_all()
+  plot_r2_fixed(df, "exposure")
+  plot_r2_fixed(df, "concentration")
+  plot_feature_importances(df)
   plot_lr_test()
   plt.show()
   flim.log("Done.")

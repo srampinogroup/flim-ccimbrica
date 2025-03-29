@@ -4,20 +4,19 @@ Perform hyper-parameter search methods for the models. These methods
 are provided as an example of how we computed the search for the
 hyper-parameters, but more refinement of the parameters have been
 done to obtain the values used in the models in the ``flim`` module.
-
 """
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import r2_score
+
 import flim
 
 
 def hyp_ridge(df: pd.DataFrame) -> None:
   """
   Search for best hyper-parameters of Ridge.
-
   """
   model = flim.MODELS["Rid"]
 
@@ -33,7 +32,6 @@ def hyp_ridge(df: pd.DataFrame) -> None:
 def hyp_forest(df: pd.DataFrame) -> None:
   """
   Search for best hyper-parameters of RandomForestRegressor.
-
   """
   model = flim.MODELS["For"]
 
@@ -51,7 +49,6 @@ def hyp_forest(df: pd.DataFrame) -> None:
 def hyp_gradient(df: pd.DataFrame) -> None:
   """
   Search for best hyper-parameters of GradientBoostingRegressor.
-
   """
   model = flim.MODELS["GBR"]
 
@@ -68,7 +65,6 @@ def search_best_hyp(df: pd.DataFrame, model,
   """
   Cross-validate the model with a GridSearchCV and print the best
   hyper-parameters and the R² score.
-
   """
   # xlbl = [
   #   "counts_avg", "counts_std", "counts_skew", "counts_tix",
@@ -96,7 +92,6 @@ def main() -> None:
   """
   Perform the hyper-parameter search for all models.
   Note: there is no hyper-parameters in LinearRegression.
-
   """
   df = flim.load_and_add_all()
 

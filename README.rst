@@ -3,6 +3,12 @@ flim-ccimbrica
 
 Machine learning analysis on FLIM measurements of Coccomyxa cimbrica exposed to Cu(II).
 
+Data set
+********
+
+The full data set used is in file `src/flimdf.json`. A sample is
+shown in `src/out/sampledf.txt`.
+
 Install (conda)
 ***************
 
@@ -23,12 +29,12 @@ Creating the virtual environment
 If need be, you can create and activate a python virtual environment
 using::
 
-  conda create -n flim python=3.13
+  conda create -n flim python=3.13.1 -y
   conda activate flim
 
 Then install all dependencies from `requirements.txt`::
 
-  conda install --yes --file requirements.txt
+  conda install -y --file=requirements.txt
 
 or with `pip`::
 
@@ -36,6 +42,7 @@ or with `pip`::
 
 You should now be able to run the python files::
 
+  cd src
   ./flim.py
 
 Usage
@@ -74,4 +81,27 @@ and `GradientBoostingRegressor
 <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingRegressor.html>`_.
 
 For more information, read the documentation in the docstring of each
-python module.
+python module in `src`:
+
+`flim.py`
+  Main module, read and curate data and is imported by most of the
+  other modules.
+
+`plot_util.py`
+  Utility for plotting data, including setting up th default
+  matplolib configuration.
+
+`lr_test.py`
+  Linear regression module. Defines and performs computation of
+  :math:`R^2` scores for models defined in `flim.py` and write
+  results to `out/lr_results.json`.
+
+`fit_decay.py`
+  Exponential decay fit.
+
+`plot_data.py`
+  Generates plots on the fly or from results of `lr_test.py`.
+
+`hyp_search.py`
+  Code demonstrating the protocol we used to perform cross-validated
+  grid search of hyper-parameters.

@@ -4,18 +4,19 @@ The ``lr_test`` module mainly provides tests for different regression
 models. Different sets of features and targets can be tested by using
 the ``LRTest`` dataclass. The main function computes the tests used
 in the article.
-
 """
 from pathlib import Path
 from dataclasses import dataclass
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RepeatedKFold
-import flim
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pandas
 jsonpickle_pandas.register_handlers()
+
+import flim
 
 
 RESULTS_FILE = "out/lr_results.json"
@@ -44,7 +45,6 @@ def generate_tests(df: pd.DataFrame) -> list[LRTest]:
   Generate the list of tests to perform on the dataset. First fixed
   concentration, then fixed exposure, and finally the product of
   both (dosage). See ``LRTest`` dataclass.
-
   """
   tests = []
   # Fixed concentration tests
@@ -93,7 +93,6 @@ def lr_test(df: pd.DataFrame) -> dict:
 
   Each model is cross-validated using RepeatedKFold for each test.
   Plots of R² for sorted samples are displayed and saved in PDF.
-
   """
   flim.log("Starting tests...")
 
@@ -143,7 +142,6 @@ def save_results(lr_res: dict) -> None:
   """
   Save the results of ``lr_test`` to a JSON file. File is
   overwritten. Path may be created.
-
   """
   flim.log(f"Serilizing to {RESULTS_FILE}...")
   json_ = jsonpickle.encode(lr_res, keys=True)
@@ -176,7 +174,6 @@ def main() -> None:
   """
   Load the dataset and perform the regression tests. The results are
   stored as JSON.
-
   """
   df = flim.load_and_add_all()
   lr_res = lr_test(df)

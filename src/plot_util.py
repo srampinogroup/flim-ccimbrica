@@ -2,9 +2,9 @@
 """
 Provide helper functions for plotting. Only
 ``alternate_every_xtick`` and defaults for matplotlib.
-
 """
 from pathlib import Path
+
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.ticker import FixedLocator, FuncFormatter
@@ -24,7 +24,6 @@ def alternate_every_xtick(axes: Axes,
   every other one is offset vertically to reduce overlap. Offset
   in points is set by the offset.
   Use in place of ``plt.xtick(ticks, labels)``.
-
   """
   def formatter(_x, p):  # pylint: disable=unused-argument
     return labels[p * 2 + 1]
@@ -40,7 +39,6 @@ def alternate_every_xtick(axes: Axes,
 def slug_figure_name(name: str) -> str:
   """
   Escape figure name to be a valid file name.
-
   """
   fn = "".join(c for c in name if c.isalnum() or c in "_-")
   return fn.replace("µ", "u")
@@ -49,7 +47,6 @@ def slug_figure_name(name: str) -> str:
 def setup_defaults() -> None:
   """
   Set default parameters for plotting.
-
   """
   plt.rcParams["figure.figsize"] = (FIG_WIDTH, FIG_HEIGHT)
   plt.rcParams['figure.constrained_layout.use'] = True
@@ -67,7 +64,6 @@ def setup_defaults() -> None:
 def main() -> None:
   """
   Make a dummy plot as testing for ``alternate_every_xtick``.
-
   """
   n = 40
   x = range(50, 50 + n)

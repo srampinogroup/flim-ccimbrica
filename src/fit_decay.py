@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
 Fit exponential decay to the decreasing part of the FLIM curve.
-
 """
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score
+
 import flim
 from plot_util import OUT_PATH, setup_defaults
 
@@ -15,7 +15,6 @@ def exp_decay(t, a, b, c) -> float:
   """
   Simple exponential decay with a, b, c being the amplitude, the
   decay rate (units of t⁻¹), and a constant term.
-
   """
   return a * np.exp(-b * t) + c
 
@@ -23,7 +22,6 @@ def exp_decay(t, a, b, c) -> float:
 def fit_and_plot_decay(t: np.ndarray, c: np.ndarray) -> None:
   """
   Computes the fit and plot the decay curve.
-
   """
   tt, tc = flim.trunc_for_decay(t, c, 0.95)
   popt, pcov = curve_fit(exp_decay, tt, tc)
@@ -48,7 +46,6 @@ def fit_and_plot_decay(t: np.ndarray, c: np.ndarray) -> None:
 def main() -> None:
   """
   Load a random FLIM sample, fit the decay and plot the figure.
-
   """
   setup_defaults()
   df = flim.load_processed_flim()

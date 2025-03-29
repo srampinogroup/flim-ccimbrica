@@ -8,10 +8,11 @@ times for averaging are done ``N_REPEATS`` times. The estimators used
 are accessible via the ``MODELS`` dictionary.
 
 See ***DOI PAPER.
-
 """
 import sys
 import warnings
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 from scipy.optimize import curve_fit
@@ -27,36 +28,35 @@ RANDOM_STATE = 1
 N_REPEATS = 10
 TEST_SIZE = 0.2
 MODELS = {
-    "Lin": lm.LinearRegression(positive=True),
-    "Rid": lm.Ridge(solver="svd", alpha=0.1),
-    "For": RandomForestRegressor(
-        criterion="absolute_error",
-        n_estimators=500,
-        max_depth=15,
-        min_samples_split=20,
-        min_samples_leaf=8,
-        max_features=0.35),
-    "GBR": GradientBoostingRegressor(
-        loss="absolute_error",
-        n_estimators=200,
-        learning_rate=0.1),
-  }
+  "Lin": lm.LinearRegression(positive=True),
+  "Rid": lm.Ridge(solver="svd", alpha=0.1),
+  "For": RandomForestRegressor(
+      criterion="absolute_error",
+      n_estimators=500,
+      max_depth=15,
+      min_samples_split=20,
+      min_samples_leaf=8,
+      max_features=0.35),
+  "GBR": GradientBoostingRegressor(
+      loss="absolute_error",
+      n_estimators=200,
+      learning_rate=0.1),
+}
 FEATURES = [
-    "counts_avg", "counts_std", "counts_skew", "counts_tix",
-    "fit_rate", "fit_const",
-    "counts_avg*fit_rate", "counts_skew*fit_const"
-  ]
+  "counts_avg", "counts_std", "counts_skew", "counts_tix",
+  "fit_rate", "fit_const",
+  "counts_avg*fit_rate", "counts_skew*fit_const"
+]
 UNITS = {
-    "concentration": "µg/ml",
-    "exposure": "h",
-    "dosage": "µg/ml h",
-  }
+  "concentration": "µg/ml",
+  "exposure": "h",
+  "dosage": "µg/ml h",
+}
 
 
 def log(s: str) -> None:
   """
   Print a message with a color in std out.
-
   """
   print(f"{Fore.BLUE}{Style.BRIGHT}{s}{Style.RESET_ALL}")
 
@@ -64,7 +64,6 @@ def log(s: str) -> None:
 def err(s: str) -> None:
   """
   Error message in std err.
-
   """
   print(f"{Fore.RED}{Style.BRIGHT}{s}{Style.RESET_ALL}",
         file=sys.stderr)
@@ -73,7 +72,6 @@ def err(s: str) -> None:
 def read_flim_df(path: str = DEFAULT_DF_PATH) -> pd.DataFrame:
   """
   Read the FLIM data from JSON file.
-
   """
   log("Reading the FLIM data...")
   init()
@@ -92,7 +90,9 @@ def read_flim_df(path: str = DEFAULT_DF_PATH) -> pd.DataFrame:
 
 
 def _filter_df(df: pd.DataFrame) -> pd.DataFrame:
-  """Filter out the problematic batches."""
+  """
+  Filter out the problematic batches.
+  """
   log("Filtering...")
 
   good_mask = df["date"].isin([
@@ -122,7 +122,9 @@ def _filter_df(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _uniform_counts_size(df: pd.DataFrame) -> pd.DataFrame:
-  """Uniform the time and counts size."""
+  """
+  Uniformize the time and counts size.
+  """
   log("Uniforming the time and counts lengths...")
   sizes = df["counts"].apply(len)
   min_size = sizes.min()
@@ -155,7 +157,6 @@ def load_processed_flim(path: str = DEFAULT_DF_PATH) -> pd.DataFrame:
   """
   Load the dataset, filter out bad batches and make sure every row
   has the same time and counts size.
-
   """
   df = read_flim_df(path)
   df = _filter_df(df)
@@ -164,7 +165,9 @@ def load_processed_flim(path: str = DEFAULT_DF_PATH) -> pd.DataFrame:
 
 
 def add_normalize_counts(df: pd.DataFrame) -> None:
-  """Harmonize counts across cells into new features (in place)."""
+  """
+  Harmonize counts across cells into new features (in place).
+  """
   def normalize_counts(c):
     m = np.max(c)
     return [x / m for x in c]
@@ -176,9 +179,7 @@ def add_normalize_counts(df: pd.DataFrame) -> None:
 def add_stat_features(df: pd.DataFrame) -> None:
   """
   Add statistics of counts as features (in place).
-
   """
-
   log("Adding stats features...")
 
   keys = ["counts"]
@@ -208,7 +209,6 @@ def trunc_for_decay(t: np.ndarray, c: np.ndarray, p: float = 0.95) \
   t: time,
   c: counts,
   p: max peak fraction (i.e. 0.5 for half-max).
-
   """
   peak_ix = c.argmax()
   # cut the long tail to focus on the decay part
@@ -225,7 +225,6 @@ def exp_decay(t, a, b, c) -> float:
   """
   Simple exponential decay with a, b, c being the amplitude, the
   decay rate (units of t⁻¹), a constant term.
-
   """
   return a * np.exp(-b * t) + c
 
@@ -233,9 +232,7 @@ def exp_decay(t, a, b, c) -> float:
 def add_decay_fit_features(df: pd.DataFrame) -> None:
   """
   Add exponential decay fit parameters (in place).
-
   """
-
   def exp_decay(x, a, b, c):
     return a * np.exp(-b * x) + c
 
@@ -262,7 +259,6 @@ def add_interaction_terms(df: pd.DataFrame) -> None:
   """
   Add interaction terms of different features that might be relevant
   for feature exploration (in place).
-
   """
   log("Adding interaction terms...")
   combi = [
@@ -287,7 +283,6 @@ def add_interaction_terms(df: pd.DataFrame) -> None:
 def add_conexp_labels(df: pd.DataFrame) -> None:
   """
   Add concentration-exposure combinations (in place).
-
   """
   log("Adding conexp labels...")
   df["dosage"] = df["concentration"] * df["exposure"]
@@ -303,7 +298,6 @@ def load_and_add_all() -> pd.DataFrame:
   """
   Load dataset and add all features, labels and interactions to have
   the comprehensive dataset for exploring the data.
-
   """
   df = load_processed_flim()
   add_normalize_counts(df)
@@ -315,7 +309,6 @@ def load_and_add_all() -> pd.DataFrame:
 
 
 _is_init = False
-
 
 def init() -> None:
   """
@@ -335,11 +328,10 @@ def init() -> None:
 
 
 def export_sample_data(df: pd.DataFrame = None,
-                       outpath: str = "sampledf.txt") -> None:
+                       outpath: str = "out/sampledf.txt") -> None:
   """
   Exports 5 first and 5 lasts rows as a human readable sample of
   the passed FLIM dataframe ``df`` into ``outpath`` file.
-
   """
   if df is None:
     df = read_flim_df("flimdf.json")
@@ -350,14 +342,17 @@ def export_sample_data(df: pd.DataFrame = None,
   for i in ["counts", "time"]:
     df[i] = df[i].apply(firsts_as_str)
 
+  log(f"Writing to {outpath}...")
+  Path(outpath).parent.mkdir(parents=True,
+                             exist_ok=True)
   with open(outpath, "w", encoding="ascii") as f:
     f.write(df.to_string(max_rows=10))
+  log("Done.")
 
 
 def main() -> None:
   """
   Simply export a subset of the data if called directly.
-
   """
   export_sample_data()
 
