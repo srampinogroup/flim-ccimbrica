@@ -93,7 +93,7 @@ python module in `src`:
 
 `lr_test.py`
   Linear regression module. Defines and performs computation of
-  :math:`R^2` scores for models defined in `flim.py` and write
+  *R²* scores for models defined in `flim.py` and write
   results to `out/lr_results.json`.
 
 `fit_decay.py`
