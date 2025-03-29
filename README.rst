@@ -88,7 +88,7 @@ python module in `src`:
   other modules.
 
 `plot_util.py`
-  Utility for plotting data, including setting up th default
+  Utility for plotting data, including setting up the default
   matplolib configuration.
 
 `lr_test.py`
