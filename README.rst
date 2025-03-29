@@ -3,13 +3,40 @@ flim-ccimbrica
 
 Machine learning analysis on FLIM measurements of Coccomyxa cimbrica exposed to Cu(II).
 
-Install
-*******
+Install (conda)
+***************
 
-We assume you have Python 3.13 installed. It might work with other
-versions as long as all packages in `requirements.txt` can be
-installed.
+The best way to run the code is to clone the repository::
 
+  git clone https://github.com/srampinogroup/flim-ccimbrica
+  cd flim-ccimbrica
+
+We recommend using conda and the conda-forge channel to install
+dependencies. If you do not have Anaconda, the `miniforge
+<https://conda-forge.org/download/>`_ installer is the simplest way
+to get started. If you already have conda, make sure to use the
+conda-forge channel.
+
+Creating the virtual environment
+================================
+
+If need be, you can create and activate a python virtual environment
+using::
+
+  conda create -n flim python=3.13
+  conda activate flim
+
+Then install all dependencies from `requirements.txt`::
+
+  conda install --yes --file requirements.txt
+
+or with `pip`::
+
+  pip install -r requirements.txt
+
+You should now be able to run the python files::
+
+  ./flim.py
 
 Usage
 *****
@@ -18,34 +45,27 @@ flim.py
 =======
 
 This is the main module of the project. It contains all functions
-needed to read, curate and preprocess the raw data:
-.. code-block:: python
+needed to read, curate and preprocess the raw data::
 
   import flim
 
-The raw data can be imported with:
-.. code-block:: python
+The raw data can be imported with::
 
   raw_df = flim.read_flim_df()
 
 the preprocessed data with:
-.. code-block:: python
 
   processed_df = flim.load_processed_flim()
 
 and the curated data set augmented with statistical, fit and
-interaction features with:
+interaction features with::
 .. code-block:: python
 
   df = flim.load_and_add_all()
 
-If the module is run, it will produce a sample of the raw data set
-and store it into `sampledf.txt`.
 
-lr_test.py
-==========
-
-Runs the tests over the four chosen regression models:
+The module also declares the array `MODELS` of the four chosen
+regression models and hyper-parameters we used:
 `LinearRegresssion
 <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html>`_,
 `Ridge
@@ -54,3 +74,9 @@ Runs the tests over the four chosen regression models:
 <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html>`_
 and `GradientBoostingRegressor
 <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingRegressor.html>`_.
+
+If the module is run, it will produce a sample of the raw data set
+and store it into `sampledf.txt`.
+
+For more information, read the documentation in the docstring of each
+python module.
