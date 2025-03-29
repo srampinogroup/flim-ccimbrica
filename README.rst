@@ -13,9 +13,9 @@ The best way to run the code is to clone the repository::
 
 We recommend using conda and the conda-forge channel to install
 dependencies. If you do not have Anaconda, the `miniforge
-<https://conda-forge.org/download/>`_ installer is the simplest way
-to get started. If you already have conda, make sure to use the
-conda-forge channel.
+<https://conda-forge.org/docs/user/introduction/>`_ installer is the
+simplest way to get started. If you already have conda, make sure to
+use the conda-forge channel.
 
 Creating the virtual environment
 ================================
@@ -41,8 +41,8 @@ You should now be able to run the python files::
 Usage
 *****
 
-flim.py
-=======
+flim.py basic usage
+===================
 
 This is the main module of the project. It contains all functions
 needed to read, curate and preprocess the raw data::
@@ -53,16 +53,14 @@ The raw data can be imported with::
 
   raw_df = flim.read_flim_df()
 
-the preprocessed data with:
+the preprocessed data with::
 
   processed_df = flim.load_processed_flim()
 
 and the curated data set augmented with statistical, fit and
 interaction features with::
-.. code-block:: python
 
   df = flim.load_and_add_all()
-
 
 The module also declares the array `MODELS` of the four chosen
 regression models and hyper-parameters we used:
@@ -74,9 +72,6 @@ regression models and hyper-parameters we used:
 <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestRegressor.html>`_
 and `GradientBoostingRegressor
 <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingRegressor.html>`_.
-
-If the module is run, it will produce a sample of the raw data set
-and store it into `sampledf.txt`.
 
 For more information, read the documentation in the docstring of each
 python module.
