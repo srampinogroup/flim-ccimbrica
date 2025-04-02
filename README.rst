@@ -99,6 +99,11 @@ in ``src``. Here is a brief description of each module:
   *R²* scores for models defined in ``flim.py`` and write
   results to ``out/lr_results.json``.
 
+``nn_test.py``
+  Neural network module. Creates the neural network architecture
+  and...
+  
+
 ``fit_decay.py``
   Exponential decay fit.
 
