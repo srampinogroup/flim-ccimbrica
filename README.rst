@@ -48,8 +48,8 @@ You should now be able to run the python files::
 Usage
 *****
 
-flim.py basic usage
-===================
+flim.py as imported module
+==========================
 
 This is the main module of the project. It contains all functions
 needed to read, curate and preprocess the raw data::
@@ -80,8 +80,11 @@ regression models and hyper-parameters we used:
 and `GradientBoostingRegressor
 <https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingRegressor.html>`_.
 
-For more information, read the documentation in the docstring of each
-python module in ``src``:
+Other modules
+=============
+
+Please read the documentation in the docstring of each python module
+in ``src``. Here is a brief description of each module:
 
 ``flim.py``
   Main module, read and curate data and is imported by most of the
