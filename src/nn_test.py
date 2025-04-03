@@ -7,8 +7,9 @@ cross-validation is performed to compute the R² score.
 import os
 from dataclasses import dataclass
 
-import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score
@@ -53,6 +54,8 @@ def nn_test(df: pd.DataFrame) -> None:
   xlbl = flim.FEATURES
   ylbl = "dosage"
 
+  df = flim.augment_dataset(df, 0.3)
+
   x = df[xlbl]
   y = df[ylbl]
 
@@ -63,23 +66,22 @@ def nn_test(df: pd.DataFrame) -> None:
       x, y, test_size=flim.TEST_SIZE,
       random_state=flim.RANDOM_STATE)
 
-  n_epochs = 500
+  n_epochs = 1000
 
   r2s = []
-  n_neurons = [20, 50, 100]
-  # n_neurons = [100]
-  # n_neuron = 100
-  # dropouts = [0.02, 0.025, 0.03, 0.035, 0.04]
-  dropout = 0.03
+  # n_neurons = [5, 10]
+  n_neuron = 10
+  dropouts = [0, 0.02, 0.03, 0.1, 0.2, 0.3]
+  # dropout = 0.03
 
-  for n_neuron in n_neurons:
-  # for dropout in dropouts:
+  # for n_neuron in n_neurons:
+  for dropout in dropouts:
     model = Sequential()
     model.add(Input(shape=(x_train.shape[1],)))
     model.add(Dense(n_neuron, activation="relu"))
+    # model.add(Dropout(dropout))
+    # model.add(Dense(n_neuron, activation="relu"))
     model.add(Dropout(dropout))
-    model.add(Dense(n_neurons, activation="elu"))
-    model.add(Dropout(0.03))
     model.add(Dense(1, activation="relu")) # target is always > 0
 
     model.compile(loss="mean_squared_error",
@@ -102,6 +104,7 @@ def nn_test(df: pd.DataFrame) -> None:
       hist = model.fit(x_train, y_train,
                        epochs=n_epochs, batch_size=8,
                        validation_data=(x_test, y_test), verbose=2)
+
       loss += model.evaluate(x_test, y_test, verbose=0)[0] \
               / n_splits
       y_pred = model.predict(x_test)
@@ -111,30 +114,34 @@ def nn_test(df: pd.DataFrame) -> None:
     print(r2, loss)
     r2s += [r2]
 
+    _fig, _ax = plt.subplots()
+    # plt.plot(hist.history["loss"])
+    # plt.plot(hist.history["val_loss"])
+    plt.plot(hist.history["r2_score"])
+    plt.plot(hist.history["val_r2_score"])
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.legend(["Train loss", "Validation loss"])
+    plt.title(f"Loss for {n_neuron} neurons, {dropout} dropout, R²"
+              f"{r2 * n_splits}")
+
   _fig, _ax = plt.subplots()
-  plt.plot(n_neurons, r2s, marker="o")
-  # plt.plot(dropouts, r2s, marker="o")
+  # plt.plot(n_neurons, r2s, marker="o")
+  plt.plot(dropouts, r2s, marker="o")
 
-  # _fig, _ax = plt.subplots()
-  # plt.plot(hist.history["loss"])
-  # plt.plot(hist.history["val_loss"])
-  # plt.xlabel("Epoch")
-  # plt.ylabel("Loss")
-  # plt.legend(["Train loss", "Validation loss"])
+  y_pred = model.predict(x_test)
+  pdf = pd.DataFrame({"y_test": y_test.values,
+                      "y_pred": y_pred[:, 0].tolist()})
+  print(pdf.sample(10))
+  flim.log("R²")
+  print(r2_score(pdf["y_test"], pdf["y_pred"]))
 
-  # y_pred = model.predict(x_test)
-  # pdf = pd.DataFrame({"y_test": y_test.values,
-  #                     "y_pred": y_pred[:, 0].tolist()})
-  # print(pdf.sample(10))
-  # flim.log("R²")
-  # print(r2_score(pdf["y_test"], pdf["y_pred"]))
-
-  # _fig, _ax = plt.subplots()
-  # plt.scatter(y_test, y_pred)
-  # # plt.plot([0, 1], [0, 1], transform=_ax.transAxes, color="red")
-  # _ax.axline((1, 1), slope=1, color="red")
-  # plt.xlabel("Concentration (real)")
-  # plt.ylabel("Concentration (predicted)")
+  _fig, _ax = plt.subplots()
+  plt.scatter(y_test, y_pred)
+  # plt.plot([0, 1], [0, 1], transform=_ax.transAxes, color="red")
+  _ax.axline((1, 1), slope=1, color="red")
+  plt.xlabel(f"real {ylbl} (units)")
+  plt.ylabel(f"predicted {ylbl} (units)")
 
   # xi = range(len(y_test))
   # xs = sorted(xi, key=y_test.values.__getitem__)

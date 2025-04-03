@@ -26,7 +26,7 @@ from sklearn import linear_model as lm
 DEFAULT_DF_PATH = "flimdf.json"
 RANDOM_STATE = 1
 N_REPEATS = 10
-TEST_SIZE = 0.2
+TEST_SIZE = 0.1
 MODELS = {
   "Lin": lm.LinearRegression(positive=True),
   "Rid": lm.Ridge(solver="svd", alpha=0.1),
@@ -306,6 +306,32 @@ def load_and_add_all() -> pd.DataFrame:
   add_interaction_terms(df)
   add_conexp_labels(df)
   return df.copy()
+
+
+def augment_dataset(df: pd.DataFrame,
+                     proportion: float = 1.0) -> pd.DataFrame:
+  """
+  Augment the dataset by adding random variation to existing samples
+  to increase the number of samples. A proportion of 1.0 means
+  doubling the dataset size.
+  """
+  def randomize(value: float, std: float) -> float:
+    rnd = np.random.normal(0, std)
+    return abs(value + rnd / 10)
+
+  log("Augmenting dataset...")
+
+  excluded = set(["counts", "counts_norm", "time", "date", "cell"])
+
+  aug_df = df.sample(int(len(df) * proportion),
+                     random_state=RANDOM_STATE).copy()
+  for column in set(aug_df.keys()) - excluded:
+    std = df[column].std()
+    aug_df[column] = aug_df[column].apply(
+        lambda row, std_=std: randomize(row, std_))
+
+  return pd.concat([df, aug_df], ignore_index=True)
+
 
 
 _is_init = False
