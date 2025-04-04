@@ -26,7 +26,7 @@ from sklearn import linear_model as lm
 DEFAULT_DF_PATH = "flimdf.json"
 RANDOM_STATE = 1
 N_REPEATS = 10
-TEST_SIZE = 0.1
+TEST_SIZE = 0.2
 MODELS = {
   "Lin": lm.LinearRegression(positive=True),
   "Rid": lm.Ridge(solver="svd", alpha=0.1),

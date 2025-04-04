@@ -23,7 +23,6 @@ from keras.models import Sequential
 from keras.layers import Input
 from keras.layers import Dense
 from keras.layers import Dropout
-# from keras.callbacks import EarlyStopping
 
 import flim
 
@@ -59,25 +58,27 @@ def nn_exploration(df: pd.DataFrame) -> None:
   xlbl = ["counts_max", "counts_std", "counts_skew", "counts_tix",
           "counts_avg", "fit_rate", "fit_const"]
   ylbl = "dosage"
-
-  augment_props = np.linspace(0, 2, 4)
+  
+  x = df[xlbl]
+  # std = StandardScaler()
+  # x = std.fit_transform(x)
+  y = df[ylbl]
+  x_train, x_test, y_train, y_test = train_test_split(x, y,
+                                                      test_size=flim.TEST_SIZE,
+                                                      random_state=flim.RANDOM_STATE)
   r2s = []
 
+  augment_props = np.linspace(0, 2, 4)
+
   for prop in augment_props:
-    df = flim.augment_dataset(df, prop)
+    aug_df = pd.DataFrame(x_train, columns=xlbl)
+    aug_df[ylbl] = y_train
+    aug_df = flim.augment_dataset(aug_df, prop)
+    x = aug_df[xlbl].values
+    y = aug_df[ylbl]
 
-    x = df[xlbl]
-    y = df[ylbl]
-
-    std = StandardScaler()
-    x = std.fit_transform(x)
-
-    x_train, x_test, y_train, y_test = train_test_split(
-        x, y, test_size=flim.TEST_SIZE,
-        random_state=flim.RANDOM_STATE)
-
-    n_epochs = int(800 / (1 + prop))
-    batch_size = 32
+    n_epochs = 800
+    batch_size = 8
 
     # n_neurons = [70, 80, 90]
     n_neuron = 70
@@ -94,6 +95,7 @@ def nn_exploration(df: pd.DataFrame) -> None:
     # model.add(Dropout(dropout))
     model.add(Dense(1, activation="relu")) # target is always > 0
 
+    # TODO try mean_squared_logarithmic_error
     model.compile(loss="mean_squared_error",
                   optimizer="adamW",
                   metrics=["r2_score"])
@@ -105,15 +107,16 @@ def nn_exploration(df: pd.DataFrame) -> None:
     loss = 0
     r2 = 0
 
-    for i, (i_train, i_test) in enumerate(kfold.split(x, y)):
+    for i, (i_train, i_val) in enumerate(kfold.split(x_train,
+                                                      y_train)):
       flim.log(f"Split {i} / {n_splits}")
       x_train = x[i_train, :]
       y_train = y.iloc[i_train]
-      x_test = x[i_test, :]
-      y_test = y.iloc[i_test]
+      x_val = x[i_val, :]
+      y_val = y.iloc[i_val]
       hist = model.fit(x_train, y_train,
                        epochs=n_epochs, batch_size=batch_size,
-                       validation_data=(x_test, y_test), verbose=2)
+                       validation_data=(x_val, y_val), verbose=2)
 
       loss += model.evaluate(x_test, y_test, verbose=0)[0] \
               / n_splits
@@ -132,8 +135,8 @@ def nn_exploration(df: pd.DataFrame) -> None:
     plt.xlabel("Epoch")
     plt.ylabel("$R^2$")
     plt.legend(["Train", "Test"])
-    plt.title(f"{n_neuron} neurons, {dropout} dropout: $R² = "
-              f"{r2:.4f}$")
+    plt.title(f"{n_neuron} neurons, {dropout} dropout, {prop:.2f} "
+              f"augmentation: $R² = {r2:.4f}$")
 
   _fig, _ax = plt.subplots()
   # plt.plot(n_neurons, r2s, marker="o")
@@ -166,7 +169,7 @@ def nn_exploration(df: pd.DataFrame) -> None:
   # plt.plot(xi, [y_pred[i, 0] for i in xs], marker=".")
   # plt.xlabel("Sample ID (sorted by dosage")
   # plt.ylabel(f"Dosage ({flim.UNITS[ylbl]})")
-  flim.log(f"Done in {time.process_time() - t0:.3f} s.")
+  flim.log(f"Done in {time.process_time() - t0:.3f}.")
 
 
 def main() -> None:
