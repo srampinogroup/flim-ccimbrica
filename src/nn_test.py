@@ -71,10 +71,10 @@ def nn_test(df: pd.DataFrame) -> None:
       x, y, test_size=flim.TEST_SIZE,
       random_state=flim.RANDOM_STATE)
 
-  n_epochs = 1500
+  n_epochs = 500
 
   r2s = []
-  n_neurons = [30, 40, 50]
+  n_neurons = [60, 70, 80]
   # n_neuron = 10
   # dropouts = [0, 0.02, 0.03, 0.1, 0.2, 0.3]
   dropout = 0
