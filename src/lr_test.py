@@ -157,12 +157,11 @@ def save_results(lr_res: dict) -> None:
 def load_results() -> dict:
   """
   Load the results of ``lr_test`` from a JSON file.
-
   """
   try:
     with open(RESULTS_FILE, "r", encoding="UTF-8") as f:
       json_ = f.read()
-  except FileNotFoundError as error:
+  except FileNotFoundError:
     flim.err("LR test results file not found, "
              "did you run lr_test.py?")
     raise

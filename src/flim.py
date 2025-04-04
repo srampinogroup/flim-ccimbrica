@@ -316,6 +316,10 @@ def augment_dataset(df: pd.DataFrame,
   doubling the dataset size.
   """
   def randomize(value: float, std: float) -> float:
+    """
+    Adds noise to the value using normal distribution of mean zero
+    and standard deviation ``std``.
+    """
     rnd = np.random.normal(0, std)
     return abs(value + rnd / 10)
 
