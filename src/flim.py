@@ -324,7 +324,8 @@ def augment_dataset(df: pd.DataFrame,
   excluded = set(["counts", "counts_norm", "time", "date", "cell"])
 
   aug_df = df.sample(int(len(df) * proportion),
-                     random_state=RANDOM_STATE).copy()
+                     random_state=RANDOM_STATE,
+                     replace=proportion > 1).copy()
   for column in set(aug_df.keys()) - excluded:
     std = df[column].std()
     aug_df[column] = aug_df[column].apply(
