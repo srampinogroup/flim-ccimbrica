@@ -4,6 +4,7 @@ This module tests neural networks on the same tabular dataset as the
 module ``lr_test``. It is the only module needing Keras. K-fold
 cross-validation is performed to compute the R² score.
 """
+import time
 import os
 from dataclasses import dataclass
 
@@ -52,6 +53,7 @@ def nn_test(df: pd.DataFrame) -> None:
   Build a neural network and test accuracy with K-fold
   cross-validation using same features as ``lr_test``.
   """
+  t0 = time.process_time()
   # xlbl = flim.FEATURES
   xlbl = ["counts_max", "counts_std", "counts_skew", "counts_tix",
           "counts_avg", "fit_rate", "fit_const"]
@@ -156,12 +158,12 @@ def nn_test(df: pd.DataFrame) -> None:
   # plt.plot(xi, [y_pred[i, 0] for i in xs], marker=".")
   # plt.xlabel("Sample ID (sorted by dosage")
   # plt.ylabel(f"Dosage ({flim.UNITS[ylbl]})")
+  flim.log(f"Done in {time.process_time() - t0:.3f}.")
 
 
 def main() -> None:
   df = flim.load_and_add_all()
   nn_test(df)
-  flim.log("Done.")
   plt.show()
 
 

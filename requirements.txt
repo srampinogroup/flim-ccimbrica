@@ -1,9 +1,9 @@
 colorama==0.4.6
-jax==0.4.35
+jax==0.5.2
 jsonpickle==4.0.0
-keras==3.8.0
+keras==3.9.0
 matplotlib==3.10.1
 numpy==2.2.4
 pandas==2.2.3
-scikit-learn==1.6.1
+scikit_learn==1.6.1
 scipy==1.15.2
