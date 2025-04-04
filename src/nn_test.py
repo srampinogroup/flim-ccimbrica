@@ -28,22 +28,22 @@ import flim
 keras.utils.set_random_seed(flim.RANDOM_STATE)
 
 
-@dataclass
-class NNTest(dict):
-  """
-  Dataclass for automation of neural network tests with fields:
-  - name: str is a free title,
-  - df: pd.DataFrame is the dataset or subset to keep,
-  - x_lbl: list[str] is the list of features,
-  - y_lbl: str is the target label,
-  - n_splits: int = 8 is the number of splits for cross-validation.
-  See ``generate_tests`` function for usage.
-  """
-  name: str
-  df: pd.DataFrame
-  x_lbl: list[str]
-  y_lbl: str
-  n_splits: int = 8
+# @dataclass
+# class NNTest(dict):
+#   """
+#   Dataclass for automation of neural network tests with fields:
+#   - name: str is a free title,
+#   - df: pd.DataFrame is the dataset or subset to keep,
+#   - x_lbl: list[str] is the list of features,
+#   - y_lbl: str is the target label,
+#   - n_splits: int = 8 is the number of splits for cross-validation.
+#   See ``generate_tests`` function for usage.
+#   """
+#   name: str
+#   df: pd.DataFrame
+#   x_lbl: list[str]
+#   y_lbl: str
+#   n_splits: int = 8
 
 
 def nn_test(df: pd.DataFrame) -> None:
@@ -51,10 +51,12 @@ def nn_test(df: pd.DataFrame) -> None:
   Build a neural network and test accuracy with K-fold
   cross-validation using same features as ``lr_test``.
   """
-  xlbl = flim.FEATURES
+  # xlbl = flim.FEATURES
+  xlbl = ["counts_max", "counts_std", "counts_skew", "counts_tix",
+          "counts_avg", "fit_rate", "fit_const"]
   ylbl = "dosage"
 
-  df = flim.augment_dataset(df, 0.3)
+  df = flim.augment_dataset(df, 1.0)
 
   x = df[xlbl]
   y = df[ylbl]
@@ -66,22 +68,22 @@ def nn_test(df: pd.DataFrame) -> None:
       x, y, test_size=flim.TEST_SIZE,
       random_state=flim.RANDOM_STATE)
 
-  n_epochs = 1000
+  n_epochs = 1500
 
   r2s = []
-  # n_neurons = [5, 10]
-  n_neuron = 10
-  dropouts = [0, 0.02, 0.03, 0.1, 0.2, 0.3]
-  # dropout = 0.03
+  n_neurons = [30, 40, 50]
+  # n_neuron = 10
+  # dropouts = [0, 0.02, 0.03, 0.1, 0.2, 0.3]
+  dropout = 0
 
-  # for n_neuron in n_neurons:
-  for dropout in dropouts:
+  for n_neuron in n_neurons:
+  # for dropout in dropouts:
     model = Sequential()
     model.add(Input(shape=(x_train.shape[1],)))
     model.add(Dense(n_neuron, activation="relu"))
-    # model.add(Dropout(dropout))
-    # model.add(Dense(n_neuron, activation="relu"))
     model.add(Dropout(dropout))
+    # model.add(Dense(n_neuron, activation="relu"))
+    # model.add(Dropout(dropout))
     model.add(Dense(1, activation="relu")) # target is always > 0
 
     model.compile(loss="mean_squared_error",
@@ -120,14 +122,16 @@ def nn_test(df: pd.DataFrame) -> None:
     plt.plot(hist.history["r2_score"])
     plt.plot(hist.history["val_r2_score"])
     plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.legend(["Train loss", "Validation loss"])
-    plt.title(f"Loss for {n_neuron} neurons, {dropout} dropout, R²"
-              f"{r2 * n_splits}")
+    plt.ylabel("$R^2$")
+    plt.legend(["Train", "Test"])
+    plt.title(f"{n_neuron} neurons, {dropout} dropout: $R² = "
+              f"{r2:.4f}$")
 
   _fig, _ax = plt.subplots()
-  # plt.plot(n_neurons, r2s, marker="o")
-  plt.plot(dropouts, r2s, marker="o")
+  plt.plot(n_neurons, r2s, marker="o")
+  # plt.plot(dropouts, r2s, marker="o")
+  plt.xlabel("number of neurons")
+  plt.ylabel("$R^2$")
 
   y_pred = model.predict(x_test)
   pdf = pd.DataFrame({"y_test": y_test.values,
