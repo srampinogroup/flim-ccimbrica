@@ -48,7 +48,7 @@ keras.utils.set_random_seed(flim.RANDOM_STATE)
 #   n_splits: int = 8
 
 
-def nn_test(df: pd.DataFrame) -> None:
+def nn_exploration(df: pd.DataFrame) -> None:
   """
   Build a neural network and test accuracy with K-fold
   cross-validation using same features as ``lr_test``.
@@ -59,27 +59,30 @@ def nn_test(df: pd.DataFrame) -> None:
           "counts_avg", "fit_rate", "fit_const"]
   ylbl = "dosage"
 
-  df = flim.augment_dataset(df, 1.0)
+  augment_props = np.linspace(0, 2, 4)
 
-  x = df[xlbl]
-  y = df[ylbl]
+  for prop in augment_props:
+    df = flim.augment_dataset(df, prop)
 
-  std = StandardScaler()
-  x = std.fit_transform(x)
+    x = df[xlbl]
+    y = df[ylbl]
 
-  x_train, x_test, y_train, y_test = train_test_split(
-      x, y, test_size=flim.TEST_SIZE,
-      random_state=flim.RANDOM_STATE)
+    std = StandardScaler()
+    x = std.fit_transform(x)
 
-  n_epochs = 500
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=flim.TEST_SIZE,
+        random_state=flim.RANDOM_STATE)
 
-  r2s = []
-  n_neurons = [60, 70, 80]
-  # n_neuron = 10
-  # dropouts = [0, 0.02, 0.03, 0.1, 0.2, 0.3]
-  dropout = 0
+    n_epochs = 800
 
-  for n_neuron in n_neurons:
+    r2s = []
+    # n_neurons = [70, 80, 90]
+    n_neuron = 70
+    # dropouts = [0, 0.03, 0.1, 0.3]
+    dropout = 0
+
+  # for n_neuron in n_neurons:
   # for dropout in dropouts:
     model = Sequential()
     model.add(Input(shape=(x_train.shape[1],)))
@@ -131,9 +134,12 @@ def nn_test(df: pd.DataFrame) -> None:
               f"{r2:.4f}$")
 
   _fig, _ax = plt.subplots()
-  plt.plot(n_neurons, r2s, marker="o")
+  # plt.plot(n_neurons, r2s, marker="o")
+  # plt.xlabel("number of neurons")
   # plt.plot(dropouts, r2s, marker="o")
-  plt.xlabel("number of neurons")
+  # plt.xlabel("dropout")
+  plt.plot(augment_props, r2s, marker="o")
+  plt.xlabel("augmentation proportion")
   plt.ylabel("$R^2$")
 
   y_pred = model.predict(x_test)
@@ -163,7 +169,7 @@ def nn_test(df: pd.DataFrame) -> None:
 
 def main() -> None:
   df = flim.load_and_add_all()
-  nn_test(df)
+  nn_exploration(df)
   plt.show()
 
 
