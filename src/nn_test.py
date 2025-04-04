@@ -14,7 +14,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score
 from sklearn.preprocessing import StandardScaler
-# from lr_test import LRTest
+# Remove next two lines to use default tensorflow backend
+import jax # for requirements.txt
 os.environ["KERAS_BACKEND"] = "jax"
 import keras
 from keras.models import Sequential
