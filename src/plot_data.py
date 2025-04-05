@@ -16,6 +16,36 @@ from plot_util import slug_figure_name, setup_defaults
 from plot_util import OUT_PATH, FIG_WIDTH, FIG_HEIGHT
 
 
+def plot_real_v_predicted(test, pred, label: str) -> None:
+  """
+  Plot real versus predicted data.
+  """
+  _fig, ax = plt.subplots()
+  ax.scatter(test, pred)
+  ax.axline((1, 1), slope=1, color="red")
+  units = flim.UNITS[label]
+  ax.set_xlabel(f"real {label} ({units})")
+  ax.set_ylabel(f"predicted {label} ({units})")
+  ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
+
+
+def plot_samples_pred(pdf: pd.DataFrame, label: str) -> None:
+  """
+  Plot predicted values over sorted real values.
+  """
+  _fig, ax = plt.subplots()
+  ix = range(len(pdf.index))
+  test = pdf["y_test"]
+  pred = pdf["y_pred"]
+  ax.plot(ix, test, "-ok")
+  ax.plot(ix, pred, "-o")
+  ax.set_xticks(ix, pdf.index.values, rotation=90, fontsize=6)
+  ax.set_xlabel(f"sample ID (sorted by {label})")
+  ax.set_ylabel(f"{label} ({flim.UNITS[label]})")
+  ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
+  ax.legend(["test data", "prediction"])
+
+
 def plot_feature_importances(df: pd.DataFrame) -> None:
   """
   Plot forest estimator feature importance from FLIM dataset.
