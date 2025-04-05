@@ -92,7 +92,6 @@ def lr_test(df: pd.DataFrame) -> dict:
   changed test-wise by changing the appropriate fields.
 
   Each model is cross-validated using RepeatedKFold for each test.
-  Plots of R² for sorted samples are displayed and saved in PDF.
   """
   flim.log("Starting tests...")
 
