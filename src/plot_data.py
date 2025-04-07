@@ -12,38 +12,10 @@ from sklearn.metrics import r2_score
 
 import flim
 import lr_test
+import nn_test
+import cnn
 from plot_util import slug_figure_name, setup_defaults
 from plot_util import OUT_PATH, FIG_WIDTH, FIG_HEIGHT
-
-
-def plot_real_v_predicted(test, pred, label: str) -> None:
-  """
-  Plot real versus predicted data.
-  """
-  _fig, ax = plt.subplots()
-  ax.scatter(test, pred)
-  ax.axline((1, 1), slope=1, color="red")
-  units = flim.UNITS[label]
-  ax.set_xlabel(f"real {label} ({units})")
-  ax.set_ylabel(f"predicted {label} ({units})")
-  ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
-
-
-def plot_samples_pred(pdf: pd.DataFrame, label: str) -> None:
-  """
-  Plot predicted values over sorted real values.
-  """
-  _fig, ax = plt.subplots()
-  ix = range(len(pdf.index))
-  test = pdf["y_test"]
-  pred = pdf["y_pred"]
-  ax.plot(ix, test, "-ok")
-  ax.plot(ix, pred, "-o")
-  ax.set_xticks(ix, pdf.index.values, rotation=90, fontsize=6)
-  ax.set_xlabel(f"sample ID (sorted by {label})")
-  ax.set_ylabel(f"{label} ({flim.UNITS[label]})")
-  ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
-  ax.legend(["test data", "prediction"])
 
 
 def plot_feature_importances(df: pd.DataFrame) -> None:
@@ -168,19 +140,107 @@ def plot_lr_test() -> None:
     plt.savefig(f"{OUT_PATH}/fig-{fig_name}.pdf")
 
 
+def _plot_real_v_predicted(pdf, label: str, figfn: str) -> None:
+  """
+  Plot real versus predicted data. The ``figfn`` string is used as a
+  fragment of the file name to avoid collision.
+  """
+  test = pdf["y_test"]
+  pred = pdf["y_pred"]
+  fig, ax = plt.subplots()
+  fig.set_size_inches((FIG_WIDTH, FIG_HEIGHT * 0.6))
+  ax.scatter(test, pred, marker=".")
+  ax.axline((1, 1), slope=1, color="red")
+  units = flim.UNITS[label]
+  ax.set_xlabel(f"real {label} ({units})")
+  ax.set_ylabel(f"predicted ({units})")
+  ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
+  out_path = f"{OUT_PATH}/fig-{figfn}-rp.pdf"
+  flim.log(f"Saving to {out_path}...")
+  plt.savefig(out_path)
+
+
+def _plot_samples_pred(pdf: pd.DataFrame, label: str, figfn: str) -> None:
+  """
+  Plot predicted values over sorted real values. The ``figfn`` string
+  is used as a fragment of the file name to avoid collision.
+  """
+  test = pdf["y_test"]
+  pred = pdf["y_pred"]
+  fig, ax = plt.subplots()
+  fig.set_size_inches((FIG_WIDTH, FIG_HEIGHT * 0.6))
+  ix = range(len(pdf.index))
+  ax.plot(ix, test, marker=".", color="k")
+  ax.plot(ix, pred, marker=".")
+  # ax.set_xticks(ix, pdf.index.values, rotation=90, fontsize=6)
+  ax.set_xticks([])
+  ax.set_xlabel(f"sample (sorted by {label})")
+  ax.set_ylabel(f"{label} ({flim.UNITS[label]})")
+  # ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
+  ax.legend(["test data", "prediction"])
+  out_path = f"{OUT_PATH}/fig-{figfn}-pred.pdf"
+  flim.log(f"Saving to {out_path}...")
+  plt.savefig(out_path)
+
+
+def _plot_fold_convergence(folds_df: pd.DataFrame, figfn: str) -> None:
+  """
+  Plot fold convergence of K-fold from ``nn_test`` or
+  ``cnn_explore``. The ``figfn`` string
+  is used as a fragment of the file name to avoid collision.
+  """
+  df = folds_df[folds_df["fold"] == 0]
+  test_r2 = df["test_r2_score"].unique()[0]
+
+  _fig, _ax = plt.subplots()
+  plt.plot(df["r2_score"], marker="None")
+  plt.plot(df["val_r2_score"], marker="None")
+  plt.xlabel("Epoch")
+  plt.ylabel("$R^2$")
+  plt.legend(["train", "validation"])
+  plt.title(f"Test $R^2 = {test_r2:.4f}$")
+
+  out_path = f"{OUT_PATH}/fig-{figfn}-train.pdf"
+  flim.log(f"Saving to {out_path}...")
+  plt.savefig(out_path)
+
+
+def plot_nn() -> None:
+  """
+  Plot figures associated with neural networks results.
+  """
+  pdf, folds_df = nn_test.load_results()
+  _plot_real_v_predicted(pdf, "dosage", "nn")
+  _plot_samples_pred(pdf, "dosage", "nn")
+  _plot_fold_convergence(folds_df, "nn")
+
+
+def plot_cnn() -> None:
+  """
+  Plot figures associated with convolutional neural networks results.
+  """
+  pdf, folds_df = nn_test.load_results()
+  _plot_real_v_predicted(pdf, "dosage", "cnn")
+  _plot_samples_pred(pdf, "dosage", "cnn")
+  _plot_fold_convergence(folds_df, "cnn")
+
+
 def main() -> None:
   """
   Plot R² scores for fixed exposure and concentration, feature
-  importances and the results of ``lr_test``.
+  importances and the results of ``lr_test``, ``nn_test`` and
+  ``cnn_explore``.
   """
   setup_defaults()
-  df = flim.load_and_add_all()
-  plot_r2_fixed(df, "exposure")
-  plot_r2_fixed(df, "concentration")
-  plot_feature_importances(df)
-  plot_lr_test()
-  plt.show()
+  # df = flim.load_and_add_all()
+  # plot_r2_fixed(df, "exposure")
+  # plot_r2_fixed(df, "concentration")
+  # plot_feature_importances(df)
+  # plot_lr_test()
+  plot_nn()
+  plot_cnn()
   flim.log("Done.")
+  # plt.show()
 
 
 if __name__ == "__main__":

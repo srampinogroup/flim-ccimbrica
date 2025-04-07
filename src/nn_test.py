@@ -6,6 +6,7 @@ cross-validation is performed to compute the R² score.
 """
 import time
 import os
+from pathlib import Path
 from dataclasses import dataclass
 
 import numpy as np
@@ -26,10 +27,11 @@ from keras.layers import Dropout
 from keras.callbacks import EarlyStopping
 
 import flim
-import plot_data
+# import plot_data
 
 
 RESULTS_FILE = "out/nn_results.json"
+FOLDS_FILE = "out/nn_folds.json"
 
 
 keras.utils.set_random_seed(flim.RANDOM_STATE)
@@ -82,6 +84,11 @@ def nn_exploration(df: pd.DataFrame) -> None:
   # dropout = 0.1
   dropout = 0
 
+  folds_df = pd.DataFrame(columns=["r2_score",
+                                   "val_r2_score",
+                                   "test_r2_score",
+                                   "fold"])
+
   for _dummy in [1]:
   # for batch_size in batch_sizes:
   # for learning_rate in learning_rates:
@@ -123,7 +130,7 @@ def nn_exploration(df: pd.DataFrame) -> None:
     kfold = KFold(n_splits=n_splits, shuffle=True,
                   random_state=flim.RANDOM_STATE)
     loss = 0
-    r2 = 0
+    r2_tot = 0
 
     for i, (i_train, i_test) in enumerate(kfold.split(x, y)):
       flim.log(f"Split {i} / {n_splits}")
@@ -141,24 +148,33 @@ def nn_exploration(df: pd.DataFrame) -> None:
       loss += model.evaluate(x_test, y_test, verbose=0)[0] \
               / n_splits
       y_pred = model.predict(x_test)
-      r2 += r2_score(y_test, y_pred) / n_splits
+      r2 = r2_score(y_test, y_pred)
+      r2_tot += r2 / n_splits
 
-      _fig, _ax = plt.subplots()
-      # plt.plot(hist.history["loss"])
-      # plt.plot(hist.history["val_loss"])
-      plt.plot(hist.history["r2_score"])
-      plt.plot(hist.history["val_r2_score"])
-      plt.xlabel("Epoch")
-      plt.ylabel("$R^2$")
-      plt.legend(["Train", "Validation"])
-      plt.title(f"{n_neuron} neurons\n{dropout} dropout\n"
-                f"{prop} augmentation\n{batch_size} batch\n"
-                f"{learning_rate} learning rate\n"
-                f"test $R^2 = {r2_score(y_test, y_pred):.4f}$")
+      fold_df = pd.DataFrame(np.column_stack(
+        (hist.history["r2_score"], hist.history["val_r2_score"])),
+        columns=["r2_score", "val_r2_score"])
+      fold_df["test_r2_score"] = r2
+      fold_df["fold"] = i
+
+      folds_df = pd.concat([folds_df, fold_df], ignore_index=True)
+
+      # _fig, _ax = plt.subplots()
+      # # plt.plot(hist.history["loss"])
+      # # plt.plot(hist.history["val_loss"])
+      # plt.plot(hist.history["r2_score"])
+      # plt.plot(hist.history["val_r2_score"])
+      # plt.xlabel("Epoch")
+      # plt.ylabel("$R^2$")
+      # plt.legend(["Train", "Validation"])
+      # plt.title(f"{n_neuron} neurons\n{dropout} dropout\n"
+      #           f"{prop} augmentation\n{batch_size} batch\n"
+      #           f"{learning_rate} learning rate\n"
+      #           f"test $R^2 = {r2:.4f}$")
 
     flim.log(f"{n_splits}-fold R², loss")
-    print(r2, loss)
-    r2s += [r2]
+    print(r2_tot, loss)
+    r2s += [r2_tot]
 
   # _fig, _ax = plt.subplots()
   # plt.plot(n_neurons, r2s, marker="o")
@@ -179,11 +195,14 @@ def nn_exploration(df: pd.DataFrame) -> None:
   pdf = pd.DataFrame({"y_test": y_test.values,
                       "y_pred": y_pred[:, 0].tolist()})
   pdf.sort_values(by="y_test", inplace=True)
+
   print(pdf.sample(10))
   flim.log("R²")
   print(r2_score(pdf["y_test"], pdf["y_pred"]))
 
-  plot_data.plot_real_v_predicted(y_test, y_pred, ylbl)
+  save_results(pdf, folds_df)
+
+  # plot_data.plot_real_v_predicted(y_test, y_pred, ylbl, "nn")
 
   # _fig, _ax = plt.subplots()
   # ix = range(len(pdf.index))
@@ -195,7 +214,7 @@ def nn_exploration(df: pd.DataFrame) -> None:
   # plt.xlabel("dosage (units)")
   # plt.ylabel("sample ID (sorted by dosage)")
   # plt.legend(["test data", "prediction"])
-  plot_data.plot_samples_pred(pdf, "dosage")
+  # plot_data.plot_samples_pred(pdf, "dosage", "nn")
 
   # xi = range(len(y_test))
   # xs = sorted(xi, key=y_test.values.__getitem__)
@@ -206,6 +225,46 @@ def nn_exploration(df: pd.DataFrame) -> None:
   # plt.xlabel("Sample ID (sorted by dosage")
   # plt.ylabel(f"Dosage ({flim.UNITS[ylbl]})")
   flim.log(f"Done in {time.process_time() - t0:.3f} s.")
+
+
+def save_results(pdf: pd.DataFrame, folds_df: pd.DataFrame) -> None:
+  """
+  Save the results of ``nn_test`` to JSON files. Files are
+  overwritten. Path may be created.
+  """
+  flim.log(f"Serilizing to {RESULTS_FILE}...")
+  Path(RESULTS_FILE).parent.mkdir(parents=True,
+                                  exist_ok=True)
+  with open(RESULTS_FILE, "w", encoding="UTF-8") as f:
+    pdf.to_json(f)
+
+  flim.log(f"Serilizing to {FOLDS_FILE}...")
+  Path(FOLDS_FILE).parent.mkdir(parents=True,
+                                  exist_ok=True)
+  with open(FOLDS_FILE, "w", encoding="UTF-8") as f:
+    folds_df.to_json(f)
+
+  flim.log("Serialization done.")
+
+
+def load_results() -> (pd.DataFrame, pd.DataFrame):
+  """
+  Load the results of ``nn_test`` from JSON files.
+  """
+  pdf: pd.DataFrame
+  folds_df: pd.DataFrame
+
+  try:
+    with open(RESULTS_FILE, "r", encoding="UTF-8") as f:
+      pdf = pd.read_json(f)
+    with open(FOLDS_FILE, "r", encoding="UTF-8") as f:
+      folds_df = pd.read_json(f)
+  except FileNotFoundError:
+    flim.err("LR test results file not found, "
+             "did you run nn_test.py?")
+    raise
+
+  return (pdf, folds_df)
 
 
 def main() -> None:

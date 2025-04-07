@@ -2,6 +2,7 @@
 
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -16,6 +17,10 @@ from keras.callbacks import EarlyStopping
 
 import flim
 import plot_data
+
+
+RESULTS_FILE = "out/cnn_results.json"
+FOLDS_FILE = "out/cnn_folds.json"
 
 
 keras.utils.set_random_seed(flim.RANDOM_STATE)
@@ -51,6 +56,10 @@ def cnn_explore(df: pd.DataFrame) -> None:
   callbacks = [EarlyStopping(monitor="val_r2_score", patience=10)]
 
   r2s = []
+  folds_df = pd.DataFrame(columns=["fold",
+                                   "r2_score",
+                                   "val_r2_score",
+                                   "test_r2_score"])
 
   for _dummy in [1]:
   # for batch_size in batch_sizes:
@@ -86,7 +95,6 @@ def cnn_explore(df: pd.DataFrame) -> None:
       layers.Dense(1, activation="relu"),
     ])
 
-
     model.compile(loss="mean_squared_error",
                   metrics=["r2_score"],
                   optimizer=optimizer)
@@ -95,7 +103,7 @@ def cnn_explore(df: pd.DataFrame) -> None:
     kfold = KFold(n_splits=n_splits, shuffle=True,
                   random_state=flim.RANDOM_STATE)
     loss = 0
-    r2 = 0
+    r2_tot = 0
 
     for i, (i_train, i_test) in enumerate(kfold.split(x, y)):
       flim.log(f"Split {i} / {n_splits}")
@@ -113,23 +121,32 @@ def cnn_explore(df: pd.DataFrame) -> None:
       loss += model.evaluate(x_test, y_test, verbose=0)[0] \
               / n_splits
       y_pred = model.predict(x_test)
-      r2 += r2_score(y_test, y_pred) / n_splits
+      r2 = r2_score(y_test, y_pred)
+      r2_tot += r2 / n_splits
 
-      _fig, _ax = plt.subplots()
-      # plt.plot(hist.history["loss"])
-      # plt.plot(hist.history["val_loss"])
-      plt.plot(hist.history["r2_score"])
-      plt.plot(hist.history["val_r2_score"])
-      plt.xlabel("Epoch")
-      plt.ylabel("$R^2$")
-      plt.legend(["Train", "Validation"])
-      plt.title(f"{n_neuron} neurons\n{dropout} dropout\n"
-                f"{prop} augmentation\n{batch_size} batch\n"
-                # f"{learning_rate} learning rate\n"
-                f"test $R^2 = {r2_score(y_test, y_pred):.4f}$")
+      fold_df = pd.DataFrame(np.column_stack(
+        (hist.history["r2_score"], hist.history["val_r2_score"])),
+        columns=["r2_score", "val_r2_score"])
+      fold_df["test_r2_score"] = r2
+      fold_df["fold"] = i
+
+      folds_df = pd.concat([folds_df, fold_df], ignore_index=True)
+
+      # _fig, _ax = plt.subplots()
+      # # plt.plot(hist.history["loss"])
+      # # plt.plot(hist.history["val_loss"])
+      # plt.plot(hist.history["r2_score"])
+      # plt.plot(hist.history["val_r2_score"])
+      # plt.xlabel("Epoch")
+      # plt.ylabel("$R^2$")
+      # plt.legend(["Train", "Validation"])
+      # plt.title(f"{n_neuron} neurons\n{dropout} dropout\n"
+      #           f"{prop} augmentation\n{batch_size} batch\n"
+      #           # f"{learning_rate} learning rate\n"
+      #           f"test $R^2 = {r2_score(y_test, y_pred):.4f}$")
 
     flim.log(f"{n_splits}-fold R², loss")
-    print(r2, loss)
+    print(r2_tot, loss)
     r2s += [r2]
 
   # _fig, _ax = plt.subplots()
@@ -159,21 +176,49 @@ def cnn_explore(df: pd.DataFrame) -> None:
   flim.log("R²")
   print(r2_score(pdf["y_test"], pdf["y_pred"]))
 
-  plot_data.plot_real_v_predicted(y_test, y_pred, "dosage")
-
-  # _fig, _ax = plt.subplots()
-  # ix = range(len(pdf.index))
-  # plt.plot(ix, pdf["y_test"], "-ok")
-  # plt.plot(ix, pdf["y_pred"], "-o")
-  # plt.xticks(pdf.index.values,
-  #            pdf.index.values,
-  #            rotation=90, fontsize=6)
-  # plt.xlabel("dosage (units)")
-  # plt.ylabel("sample ID (sorted by dosage)")
-  # plt.legend(["test data", "prediction"])
-  plot_data.plot_samples_pred(pdf, "dosage")
+  save_results(pdf, folds_df)
 
   flim.log(f"Done in {time.process_time() - t0:.3f} s.")
+
+
+def save_results(pdf: pd.DataFrame, folds_df: pd.DataFrame) -> None:
+  """
+  Save the results of ``cnn_explore`` to JSON files. Files are
+  overwritten. Path may be created.
+  """
+  flim.log(f"Serilizing to {RESULTS_FILE}...")
+  Path(RESULTS_FILE).parent.mkdir(parents=True,
+                                  exist_ok=True)
+  with open(RESULTS_FILE, "w", encoding="UTF-8") as f:
+    pdf.to_json(f)
+
+  flim.log(f"Serilizing to {FOLDS_FILE}...")
+  Path(FOLDS_FILE).parent.mkdir(parents=True,
+                                  exist_ok=True)
+  with open(FOLDS_FILE, "w", encoding="UTF-8") as f:
+    folds_df.to_json(f)
+
+  flim.log("Serialization done.")
+
+
+def load_results() -> (pd.DataFrame, pd.DataFrame):
+  """
+  Load the results of ``cnn_explore`` from JSON files.
+  """
+  pdf: pd.DataFrame
+  folds_df: pd.DataFrame
+
+  try:
+    with open(RESULTS_FILE, "r", encoding="UTF-8") as f:
+      pdf = pd.read_json(f)
+    with open(FOLDS_FILE, "r", encoding="UTF-8") as f:
+      folds_df = pd.read_json(f)
+  except FileNotFoundError:
+    flim.err("LR test results file not found, "
+             "did you run cnn.py?")
+    raise
+
+  return (pdf, folds_df)
 
 
 def main() -> None:
