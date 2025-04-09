@@ -44,7 +44,7 @@ def fit_and_plot_decay(t: np.ndarray, c: np.ndarray) -> None:
 
   flim.log("Generating TOC figure...")
 
-  fig.set_size_inches((FIG_WIDTH * 2, FIG_HEIGHT))
+  fig.set_size_inches((FIG_WIDTH / 2, FIG_HEIGHT / 4))
   plt.plot(tt, tc_pred, color="black", marker="None", lw=2)
   plt.text(1.4, 15e3, "$f(x) = a \\exp(-b t) + c$", fontsize=12)
   plt.legend().remove()
@@ -78,7 +78,7 @@ def main() -> None:
   t = row["time"].apply(np.array).iloc[0]
   c = row["counts"].apply(np.array).iloc[0]
   fit_and_plot_decay(t, c)
-  # plt.show()
+  plt.show()
 
 
 if __name__ == "__main__":
