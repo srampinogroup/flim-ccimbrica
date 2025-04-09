@@ -7,6 +7,7 @@ in module ``fit_decay``.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 
@@ -45,6 +46,32 @@ def _plot_fi_model(model, names: list[str]) -> None:
   plt.barh(names, fi)
   flim.log(f"Saving to {OUT_PATH}/fig-fi.pdf...")
   plt.savefig(f"{OUT_PATH}/fig-fi.pdf")
+
+
+def plot_forest(df: pd.DataFrame) -> None:
+  """
+  Plot forest for graphical abstract.
+  """
+  ylbl = "dosage"
+  forest = flim.MODELS["For"]
+  # x_train, x_test, y_train, y_test = train_test_split(
+  #     df[flim.FEATURES], df[ylbl],
+  #     test_size=flim.TEST_SIZE,
+  #     random_state=flim.RANDOM_STATE)
+  forest.fit(df[flim.FEATURES], df[ylbl])
+
+  _fig, _ax = plt.subplots(figsize=(4, 4), dpi=800)
+  sklearn.tree.plot_tree(forest.estimators_[0],
+                         feature_names=flim.FEATURES,
+                         class_names=[ylbl],
+                         filled=True)
+
+
+def plot_features_on_fit() -> None:
+  """
+  Plot statistical features on fit plot for graphical abstract.
+  """
+  
 
 
 def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
@@ -150,7 +177,8 @@ def _plot_real_v_predicted(pdf, label: str, figfn: str) -> None:
   fig, ax = plt.subplots()
   fig.set_size_inches((FIG_WIDTH, FIG_HEIGHT * 0.6))
   ax.scatter(test, pred, marker=".")
-  ax.axline((1, 1), slope=1, color="red")
+  ax.axline((1, 1), slope=1, color="red", marker="None")
+  ax.set_ylim(-1e4, 7.8e4)
   units = flim.UNITS[label]
   ax.set_xlabel(f"real {label} ({units})")
   ax.set_ylabel(f"predicted ({units})")
@@ -236,11 +264,12 @@ def main() -> None:
   # plot_r2_fixed(df, "exposure")
   # plot_r2_fixed(df, "concentration")
   # plot_feature_importances(df)
+  # plot_forest(df)
   # plot_lr_test()
   plot_nn()
-  plot_cnn()
+  # plot_cnn()
   flim.log("Done.")
-  # plt.show()
+  plt.show()
 
 
 if __name__ == "__main__":

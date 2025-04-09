@@ -8,7 +8,7 @@ from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score
 
 import flim
-from plot_util import OUT_PATH, setup_defaults
+from plot_util import OUT_PATH, FIG_WIDTH, FIG_HEIGHT, setup_defaults
 
 
 def exp_decay(t, a, b, c) -> float:
@@ -26,7 +26,7 @@ def fit_and_plot_decay(t: np.ndarray, c: np.ndarray) -> None:
   tt, tc = flim.trunc_for_decay(t, c, 0.95)
   popt, pcov = curve_fit(exp_decay, tt, tc)
 
-  _fig, _ax = plt.subplots()
+  fig, _ax = plt.subplots()
   plt.scatter(t, c)
   plt.scatter(tt, tc, marker="x", lw=1)
   tc_pred = exp_decay(tt, *popt)
@@ -37,9 +37,34 @@ def fit_and_plot_decay(t: np.ndarray, c: np.ndarray) -> None:
   plt.ylabel("Counts")
   plt.legend(["Counts of photons", "Truncated counts",
               f"Fit ($R^2$ = {r2:.4f})"])
-  flim.log(f"Saving to {OUT_PATH}/fig-fitexp.pdf...")
-  plt.savefig(f"{OUT_PATH}/fig-fitexp.pdf")
-  plt.show()
+  out = OUT_PATH + "/fig-fitexp.pdf"
+  flim.log(f"Saving to {out}...")
+  plt.savefig(out)
+  flim.log("Done.")
+
+  flim.log("Generating TOC figure...")
+
+  fig.set_size_inches((FIG_WIDTH * 2, FIG_HEIGHT))
+  plt.plot(tt, tc_pred, color="black", marker="None", lw=2)
+  plt.text(1.4, 15e3, "$f(x) = a \\exp(-b t) + c$", fontsize=12)
+  plt.legend().remove()
+
+  lw = 2
+  ft = 12
+
+  tix = np.argmax(c)
+  plt.vlines(t[tix], 0, c[tix], color="C1", lw=lw)
+  plt.text(0.6, -1, "tix", color="C1", fontsize=ft)
+  plt.hlines(c[tix], t[tix], 1, color="C3", lw=lw)
+  plt.text(0.9, 2e5, "max", color="C3", fontsize=ft)
+  avg = 5e4
+  plt.hlines(avg, t[0], t[-1], color="C4", lw=lw)
+  plt.text(1.2, avg * 1.12, "avg", color="C4", fontsize=ft)
+
+
+  out = OUT_PATH + "/fig-fitexp_toc.png"
+  flim.log(f"Saving to {out}...")
+  plt.savefig(out)
   flim.log("Done.")
 
 
@@ -53,6 +78,7 @@ def main() -> None:
   t = row["time"].apply(np.array).iloc[0]
   c = row["counts"].apply(np.array).iloc[0]
   fit_and_plot_decay(t, c)
+  # plt.show()
 
 
 if __name__ == "__main__":

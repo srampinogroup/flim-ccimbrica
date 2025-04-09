@@ -49,6 +49,7 @@ def setup_defaults() -> None:
   Set default parameters for plotting.
   """
   plt.rcParams["figure.figsize"] = (FIG_WIDTH, FIG_HEIGHT)
+  plt.rcParams["figure.dpi"] = 300
   plt.rcParams['figure.constrained_layout.use'] = True
   plt.rcParams["font.size"] = 8
   plt.rcParams["axes.titlesize"] = 8
