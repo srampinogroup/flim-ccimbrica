@@ -28,7 +28,8 @@ keras.utils.set_random_seed(flim.RANDOM_STATE)
 
 def cnn_explore(df: pd.DataFrame) -> None:
   """
-  Exploration of CNN hyperparameters.
+  Exploration of CNN hyperparameters using basic linear search and
+  keeping best.
   """
   t0 = time.process_time()
   n_epochs = 2000
@@ -39,7 +40,7 @@ def cnn_explore(df: pd.DataFrame) -> None:
   # weight_decays = np.linspace(0.001, 0.01, 10)
   # weight_decay = 0.001
   # augment_props = np.linspace(0, 1, 5)
-  prop = 0.0
+  # prop = 0.0
   # n_neurons = [5, 10, 15]
   n_neuron = 5
   # n_filters = [3, 5, 7]
@@ -125,8 +126,8 @@ def cnn_explore(df: pd.DataFrame) -> None:
       r2_tot += r2 / n_splits
 
       fold_df = pd.DataFrame(np.column_stack(
-        (hist.history["r2_score"], hist.history["val_r2_score"])),
-        columns=["r2_score", "val_r2_score"])
+          (hist.history["r2_score"], hist.history["val_r2_score"])),
+          columns=["r2_score", "val_r2_score"])
       fold_df["test_r2_score"] = r2
       fold_df["fold"] = i
 

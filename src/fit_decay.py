@@ -65,7 +65,6 @@ def fit_and_plot_decay(t: np.ndarray, c: np.ndarray) -> None:
   plt.hlines(avg, t[0], t[-1], color="C4", lw=lw)
   plt.text(1.2, avg * 1.12, "avg", color="C4", fontsize=ft)
 
-
   out = OUT_PATH + "/fig-fitexp_toc.png"
   flim.log(f"Saving to {out}...")
   plt.savefig(out)

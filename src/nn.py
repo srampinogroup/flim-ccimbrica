@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 This module tests neural networks on the same tabular dataset as the
-module ``lr_test``. It is the only module needing Keras. K-fold
-cross-validation is performed to compute the R² score.
+module ``lr_test``. K-fold cross-validation is performed to compute
+the R² score.
 """
 import time
 import os
@@ -27,7 +27,6 @@ from keras.layers import Dropout
 from keras.callbacks import EarlyStopping
 
 import flim
-# import plot_data
 
 
 RESULTS_FILE = "out/nn_results.json"
@@ -37,31 +36,13 @@ FOLDS_FILE = "out/nn_folds.json"
 keras.utils.set_random_seed(flim.RANDOM_STATE)
 
 
-# @dataclass
-# class NNTest(dict):
-#   """
-#   Dataclass for automation of neural network tests with fields:
-#   - name: str is a free title,
-#   - df: pd.DataFrame is the dataset or subset to keep,
-#   - x_lbl: list[str] is the list of features,
-#   - y_lbl: str is the target label,
-#   - n_splits: int = 8 is the number of splits for cross-validation.
-#   See ``generate_tests`` function for usage.
-#   """
-#   name: str
-#   df: pd.DataFrame
-#   x_lbl: list[str]
-#   y_lbl: str
-#   n_splits: int = 8
-
-
 def nn_exploration(df: pd.DataFrame) -> None:
   """
-  Build a neural network and test accuracy with K-fold
-  cross-validation using same features as ``lr_test``.
+  Explore best hyperparameters for neural network model. Use the same
+  cross-validation method as ``lr_test`` using a subset of the
+  features and early stopping.
   """
   t0 = time.process_time()
-  # xlbl = flim.FEATURES
   xlbl = ["counts_max", "counts_std", "counts_skew", "counts_tix",
           "counts_avg", "fit_rate", "fit_const"]
   ylbl = "dosage"
@@ -159,19 +140,6 @@ def nn_exploration(df: pd.DataFrame) -> None:
 
       folds_df = pd.concat([folds_df, fold_df], ignore_index=True)
 
-      # _fig, _ax = plt.subplots()
-      # # plt.plot(hist.history["loss"])
-      # # plt.plot(hist.history["val_loss"])
-      # plt.plot(hist.history["r2_score"])
-      # plt.plot(hist.history["val_r2_score"])
-      # plt.xlabel("Epoch")
-      # plt.ylabel("$R^2$")
-      # plt.legend(["Train", "Validation"])
-      # plt.title(f"{n_neuron} neurons\n{dropout} dropout\n"
-      #           f"{prop} augmentation\n{batch_size} batch\n"
-      #           f"{learning_rate} learning rate\n"
-      #           f"test $R^2 = {r2:.4f}$")
-
     flim.log(f"{n_splits}-fold R², loss")
     print(r2_tot, loss)
     r2s += [r2_tot]
@@ -202,34 +170,12 @@ def nn_exploration(df: pd.DataFrame) -> None:
 
   save_results(pdf, folds_df)
 
-  # plot_data.plot_real_v_predicted(y_test, y_pred, ylbl, "nn")
-
-  # _fig, _ax = plt.subplots()
-  # ix = range(len(pdf.index))
-  # plt.plot(ix, pdf["y_test"], "-ok")
-  # plt.plot(ix, pdf["y_pred"], "-o")
-  # plt.xticks(pdf.index.values,
-  #            pdf.index.values,
-  #            rotation=90, fontsize=6)
-  # plt.xlabel("dosage (units)")
-  # plt.ylabel("sample ID (sorted by dosage)")
-  # plt.legend(["test data", "prediction"])
-  # plot_data.plot_samples_pred(pdf, "dosage", "nn")
-
-  # xi = range(len(y_test))
-  # xs = sorted(xi, key=y_test.values.__getitem__)
-  # _fig, _ax = plt.subplots()
-  # plt.plot(xi, [y_test.iloc[i] for i in xs], marker="o",
-  #     color="k", label=f"real ({ylbl})")
-  # plt.plot(xi, [y_pred[i, 0] for i in xs], marker=".")
-  # plt.xlabel("Sample ID (sorted by dosage")
-  # plt.ylabel(f"Dosage ({flim.UNITS[ylbl]})")
   flim.log(f"Done in {time.process_time() - t0:.3f} s.")
 
 
 def save_results(pdf: pd.DataFrame, folds_df: pd.DataFrame) -> None:
   """
-  Save the results of ``nn_test`` to JSON files. Files are
+  Save the results of ``nn_exploration`` to JSON files. Files are
   overwritten. Path may be created.
   """
   flim.log(f"Serilizing to {RESULTS_FILE}...")
@@ -249,7 +195,7 @@ def save_results(pdf: pd.DataFrame, folds_df: pd.DataFrame) -> None:
 
 def load_results() -> (pd.DataFrame, pd.DataFrame):
   """
-  Load the results of ``nn_test`` from JSON files.
+  Load the results of ``nn_exploration`` from JSON files.
   """
   pdf: pd.DataFrame
   folds_df: pd.DataFrame
@@ -261,16 +207,20 @@ def load_results() -> (pd.DataFrame, pd.DataFrame):
       folds_df = pd.read_json(f)
   except FileNotFoundError:
     flim.err("LR test results file not found, "
-             "did you run nn_test.py?")
+             "did you run nn.py?")
     raise
 
   return (pdf, folds_df)
 
 
 def main() -> None:
+  """
+  Run the fit with the last kept hyperparameters and store the
+  results in JSON format.
+  """
   df = flim.load_and_add_all()
   nn_exploration(df)
-  plt.show()
+  # plt.show()
 
 
 if __name__ == "__main__":

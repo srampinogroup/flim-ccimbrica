@@ -117,7 +117,9 @@ def lr_test(df: pd.DataFrame) -> dict:
         "y_pred": {},
       }
 
-    scores = pd.DataFrame(columns=["model", "R² mean", "R² std", "time"])
+    scores = pd.DataFrame(columns=["model", "R² mean", "R² std",
+                                   "time"])
+
     for name, model in flim.MODELS.items():
       t1 = time.process_time()
       kfold = RepeatedKFold(
