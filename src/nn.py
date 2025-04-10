@@ -176,7 +176,7 @@ def nn_exploration(df: pd.DataFrame) -> None:
 def save_results(pdf: pd.DataFrame, folds_df: pd.DataFrame) -> None:
   """
   Save the results of ``nn_exploration`` to JSON files. Files are
-  overwritten. Path may be created.
+  overwritten. Paths may be created.
   """
   flim.log(f"Serilizing to {RESULTS_FILE}...")
   Path(RESULTS_FILE).parent.mkdir(parents=True,

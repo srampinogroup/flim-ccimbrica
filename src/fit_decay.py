@@ -8,7 +8,7 @@ from scipy.optimize import curve_fit
 from sklearn.metrics import r2_score
 
 import flim
-from plot_util import OUT_PATH, FIG_WIDTH, FIG_HEIGHT, setup_defaults
+from plot_util import OUT_PATH, setup_defaults
 
 
 def exp_decay(t, a, b, c) -> float:

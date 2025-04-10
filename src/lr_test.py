@@ -15,9 +15,11 @@ from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RepeatedKFold
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pandas
-jsonpickle_pandas.register_handlers()
 
 import flim
+
+
+jsonpickle_pandas.register_handlers()
 
 
 RESULTS_FILE = "out/lr_results.json"
@@ -152,7 +154,6 @@ def save_results(lr_res: dict) -> None:
   Path(RESULTS_FILE).parent.mkdir(parents=True,
                                   exist_ok=True)
   with open(RESULTS_FILE, "w", encoding="UTF-8") as f:
-    # json.dump(lr_res, f, default=vars)
     f.write(json_)
 
   flim.log("Serialization done.")

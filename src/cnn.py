@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-
+"""
+Convolutional neural network on the full time-serie signal.
+"""
 import os
 import time
 from pathlib import Path
@@ -10,6 +12,8 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score
+# Remove next two lines to use default tensorflow backend
+import jax # for requirements.txt
 os.environ["KERAS_BACKEND"] = "jax"
 import keras
 from keras import layers
@@ -133,19 +137,6 @@ def cnn_explore(df: pd.DataFrame) -> None:
 
       folds_df = pd.concat([folds_df, fold_df], ignore_index=True)
 
-      # _fig, _ax = plt.subplots()
-      # # plt.plot(hist.history["loss"])
-      # # plt.plot(hist.history["val_loss"])
-      # plt.plot(hist.history["r2_score"])
-      # plt.plot(hist.history["val_r2_score"])
-      # plt.xlabel("Epoch")
-      # plt.ylabel("$R^2$")
-      # plt.legend(["Train", "Validation"])
-      # plt.title(f"{n_neuron} neurons\n{dropout} dropout\n"
-      #           f"{prop} augmentation\n{batch_size} batch\n"
-      #           # f"{learning_rate} learning rate\n"
-      #           f"test $R^2 = {r2_score(y_test, y_pred):.4f}$")
-
     flim.log(f"{n_splits}-fold R², loss")
     print(r2_tot, loss)
     r2s += [r2]
@@ -185,7 +176,7 @@ def cnn_explore(df: pd.DataFrame) -> None:
 def save_results(pdf: pd.DataFrame, folds_df: pd.DataFrame) -> None:
   """
   Save the results of ``cnn_explore`` to JSON files. Files are
-  overwritten. Path may be created.
+  overwritten. Paths may be created.
   """
   flim.log(f"Serilizing to {RESULTS_FILE}...")
   Path(RESULTS_FILE).parent.mkdir(parents=True,
