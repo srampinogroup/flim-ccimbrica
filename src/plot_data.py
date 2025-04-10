@@ -67,13 +67,6 @@ def plot_forest(df: pd.DataFrame) -> None:
                          filled=True)
 
 
-def plot_features_on_fit() -> None:
-  """
-  Plot statistical features on fit plot for graphical abstract.
-  """
-  
-
-
 def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
   """
   Generate target-label-dependant R² score for provided label,

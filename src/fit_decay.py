@@ -43,14 +43,18 @@ def fit_and_plot_decay(t: np.ndarray, c: np.ndarray) -> None:
   flim.log("Done.")
 
   flim.log("Generating TOC figure...")
+  lw = 1
+  ft = 8
 
-  fig.set_size_inches((FIG_WIDTH / 2, FIG_HEIGHT / 4))
-  plt.plot(tt, tc_pred, color="black", marker="None", lw=2)
-  plt.text(1.4, 15e3, "$f(x) = a \\exp(-b t) + c$", fontsize=12)
+  fig.set_size_inches((1.6, 2))
+  plt.plot(tt, tc_pred, color="black", marker="None", lw=lw)
+  # plt.text(124, 15e4, "$f(x) = a \\exp(-b t) + c$", fontsize=ft)
+  plt.text(0.7, 15e4, "fit", fontsize=ft)
+  plt.xlabel(None)
+  plt.ylabel(None)
+  plt.xticks([], [])
+  plt.yticks([], [])
   plt.legend().remove()
-
-  lw = 2
-  ft = 12
 
   tix = np.argmax(c)
   plt.vlines(t[tix], 0, c[tix], color="C1", lw=lw)
