@@ -13,7 +13,7 @@ from sklearn.metrics import r2_score
 
 import flim
 import lr_test
-import nn_test
+import nn
 import cnn
 from plot_util import slug_figure_name, setup_defaults
 from plot_util import OUT_PATH, FIG_WIDTH, FIG_HEIGHT
