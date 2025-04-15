@@ -24,7 +24,7 @@ simplest way to get started. If you already have conda, make sure to
 use the conda-forge channel.
 
 We use Keras with JAX backend. If you want to switch the backend you
-can edit the file ``src/nn_test.py`` right after the import of Keras.
+can edit the file ``src/nn_test.py`` right before the import of Keras.
 
 Creating the virtual environment
 ================================
