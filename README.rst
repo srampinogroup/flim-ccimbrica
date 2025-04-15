@@ -104,14 +104,17 @@ in ``src``. Here is a brief description of each module:
 
 ``nn_test.py``
   Neural network module. Creates the neural network architecture
-  and...
-  
+  and computes test *R²* score.
+
+``cnn.py``
+  Convolutional neural network code.
 
 ``fit_decay.py``
   Exponential decay fit.
 
 ``plot_data.py``
-  Generates plots on the fly or from results of ``lr_test.py``.
+  Generates plots on the fly or from results of ``lr_test.py``,
+  ``nn_test`` and ``cnn``.
 
 ``hyp_search.py``
   Code demonstrating the protocol we used to perform cross-validated
