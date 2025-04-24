@@ -103,7 +103,8 @@ def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
   _fig, _ax = plt.subplots()
 
   for name in flim.MODELS:
-    plt.plot(exp_or_con, r2_means[name], label=f"$\\mathtt{{{name}}}$")
+    plt.plot(exp_or_con, r2_means[name],
+             label=f"$\\mathtt{{{name}}}$")
 
   plt.axhline(y=0, color="k", linestyle="--")
   plt.xlabel(f"Fixed {fixed_label} ({flim.UNITS[fixed_label]})")
@@ -204,7 +205,8 @@ def _plot_samples_pred(pdf: pd.DataFrame, label: str, figfn: str) -> None:
   plt.savefig(out_path)
 
 
-def _plot_fold_convergence(folds_df: pd.DataFrame, figfn: str) -> None:
+def _plot_fold_convergence(folds_df: pd.DataFrame, figfn: str) \
+    -> None:
   """
   Plot fold convergence of K-fold from ``nn_test`` or
   ``cnn_explore``. The ``figfn`` string

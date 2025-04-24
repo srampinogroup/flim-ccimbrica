@@ -92,7 +92,8 @@ def lr_test(df: pd.DataFrame) -> dict:
   stored in the ``FEATURES`` list in the same module. They can be
   changed test-wise by changing the appropriate fields.
 
-  Each model is cross-validated using RepeatedKFold for each test.
+  Each model is cross-validated using ``RepeatedKFold`` for each
+  test.
   """
   t0 = time.process_time()
   flim.log("Starting tests...")
@@ -117,7 +118,9 @@ def lr_test(df: pd.DataFrame) -> dict:
         "y_pred": {},
       }
 
-    scores = pd.DataFrame(columns=["model", "R² mean", "R² std", "time"])
+    scores = pd.DataFrame(columns=["model",
+                                   "R² mean", "R² std",
+                                   "time"])
     for name, model in flim.MODELS.items():
       t1 = time.process_time()
       kfold = RepeatedKFold(
@@ -126,7 +129,9 @@ def lr_test(df: pd.DataFrame) -> dict:
           random_state=flim.RANDOM_STATE)
       cv_r2 = cross_val_score(model, x_train, y_train, cv=kfold)
       scores.loc[len(scores.index)] = [
-          name, cv_r2.mean(), cv_r2.std(), time.process_time() - t1]
+          name,
+          cv_r2.mean(), cv_r2.std(),
+          time.process_time() - t1]
 
       model.fit(x_train, y_train)
       y_pred = model.predict(x_test)
@@ -150,7 +155,6 @@ def save_results(lr_res: dict) -> None:
   Path(RESULTS_FILE).parent.mkdir(parents=True,
                                   exist_ok=True)
   with open(RESULTS_FILE, "w", encoding="UTF-8") as f:
-    # json.dump(lr_res, f, default=vars)
     f.write(json_)
 
   flim.log("Serialization done.")
