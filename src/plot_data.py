@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error as mse_score
+from sklearn.metrics import mean_absolute_error as mae_score
 
 import flim
 import lr_test
@@ -79,9 +81,11 @@ def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
 
   exp_or_con = df[fixed_label].unique()
   r2_means = {}
+  mse_means = {}
 
   for name in flim.MODELS:
     r2_means[name] = [0] * len(exp_or_con)
+    mse_means[name] = [0] * len(exp_or_con)
 
   for _i in range(flim.N_REPEATS):
     for i, ue in enumerate(exp_or_con):
@@ -97,9 +101,13 @@ def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
         model.fit(x_train, y_train)
         y_pred = model.predict(x_test)
         r2 = r2_score(y_test, y_pred)
+        mse = mae_score(y_test, y_pred)
         r2_means[name][i] += r2 / flim.N_REPEATS
-        print(f"{name}: R² = {r2}$")
+        mse_means[name][i] += mse / flim.N_REPEATS
+        # print(f"{name}: R² = {r2}, MSE = {mse}")
+        print(f"{name}: R² = {r2}, MSE = {mse} {flim.UNITS[ylbl]}")
 
+  # R2
   _fig, _ax = plt.subplots()
 
   for name in flim.MODELS:
@@ -115,11 +123,27 @@ def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
   flim.log(f"Saving to {OUT_PATH}/fig-r2-{fixed_label}.pdf...")
   plt.savefig(f"{OUT_PATH}/fig-r2-{fixed_label}.pdf")
 
+  # MSE
+  _fig, _ax = plt.subplots()
+
+  for name in flim.MODELS:
+    plt.plot(exp_or_con, mse_means[name],
+             label=f"$\\mathtt{{{name}}}$")
+
+  plt.axhline(y=0, color="k", linestyle="--")
+  plt.xlabel(f"Fixed {fixed_label} ({flim.UNITS[fixed_label]})")
+  plt.ylabel("MSE")
+  plt.xticks(exp_or_con)
+  plt.legend()
+
+  flim.log(f"Saving to {OUT_PATH}/fig-mae-{fixed_label}.pdf...")
+  plt.savefig(f"{OUT_PATH}/fig-mae-{fixed_label}.pdf")
+
 
 def plot_lr_test() -> None:
   """
-  Plot ``lr_test`` results, that is R² scores for each model on
-  different tests (fixed concentration, dosage, etc).
+  Plot ``lr_test`` results, that is R² and MSE scores for each model
+  on different tests (fixed concentration, dosage, etc).
   """
   lr_results = lr_test.load_results()
 
@@ -142,8 +166,10 @@ def plot_lr_test() -> None:
 
     for name, y_pred in test["y_pred"].items():
       r2 = r2_score(y_test, y_pred)
+      mse = mae_score(y_test, y_pred)
       plt.plot(xi, [y_pred[i] for i in xs],
-               label=f"$\\mathtt{{{name}}}, R^2 = {r2:0.4f}$")
+               label=f"$\\mathtt{{{name}}}, R^2 = {r2:0.4f}, "
+               f"MSE = {mse:5.2f} ({flim.UNITS[y_lbl]})$")
 
     reindexed = x_test.reset_index().reindex(index=xs).sort_index()
     plt.xticks(reindexed.index.values.tolist(),
@@ -255,13 +281,13 @@ def main() -> None:
   ``cnn_explore``.
   """
   setup_defaults()
-  # df = flim.load_and_add_all()
-  # plot_r2_fixed(df, "exposure")
-  # plot_r2_fixed(df, "concentration")
+  df = flim.load_and_add_all()
+  plot_r2_fixed(df, "exposure")
+  plot_r2_fixed(df, "concentration")
   # plot_feature_importances(df)
   # plot_forest(df)
   # plot_lr_test()
-  plot_nn()
+  # plot_nn()
   # plot_cnn()
   flim.log("Done.")
   plt.show()

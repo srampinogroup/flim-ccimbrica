@@ -120,7 +120,7 @@ def lr_test(df: pd.DataFrame) -> dict:
 
     scores = pd.DataFrame(columns=["model",
                                    "R² mean", "R² std",
-                                   "RMSE mean", "RMSE std",
+                                   "MSE mean", "MSE std",
                                    "time"])
     for name, model in flim.MODELS.items():
       t1 = time.process_time()
@@ -129,12 +129,12 @@ def lr_test(df: pd.DataFrame) -> dict:
           n_repeats=flim.N_REPEATS,
           random_state=flim.RANDOM_STATE)
       cv_r2 = cross_val_score(model, x_train, y_train, cv=kfold)
-      cv_rmse = cross_val_score(model, x_train, y_train, cv=kfold,
-                               scoring="neg_root_mean_squared_error")
+      cv_mse = cross_val_score(model, x_train, y_train, cv=kfold,
+                               scoring="neg_mean_squared_error")
       scores.loc[len(scores.index)] = [
           name,
           cv_r2.mean(), cv_r2.std(),
-          cv_rmse.mean(), cv_rmse.std(),
+          cv_mse.mean(), cv_mse.std(),
           time.process_time() - t1]
 
       model.fit(x_train, y_train)
