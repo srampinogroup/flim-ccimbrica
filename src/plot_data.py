@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
-from sklearn.metrics import mean_squared_error as mse_score
+# from sklearn.metrics import mean_squared_error as mse_score
 from sklearn.metrics import mean_absolute_error as mae_score
 
 import flim
