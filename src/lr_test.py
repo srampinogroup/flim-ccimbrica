@@ -48,27 +48,27 @@ def generate_tests(df: pd.DataFrame) -> list[LRTest]:
   both (dosage). See ``LRTest`` dataclass.
   """
   tests = []
-  # Fixed concentration tests
-  tests += [
-    LRTest(
-      f"concentration = {con} µg/ml",
-      df[df["concentration"] == con],
-      flim.FEATURES,
-      "exposure",
-    )
-    for con in df["concentration"].unique()
-  ]
+  # # Fixed concentration tests
+  # tests += [
+  #   LRTest(
+  #     f"concentration = {con} µg/ml",
+  #     df[df["concentration"] == con],
+  #     flim.FEATURES,
+  #     "exposure",
+  #   )
+  #   for con in df["concentration"].unique()
+  # ]
 
-  # Fixed exposure tests
-  tests += [
-    LRTest(
-      f"exposure = {exp} h",
-      df[df["exposure"] == exp],
-      flim.FEATURES,
-      "concentration",
-    )
-    for exp in df["exposure"].unique()
-  ]
+  # # Fixed exposure tests
+  # tests += [
+  #   LRTest(
+  #     f"exposure = {exp} h",
+  #     df[df["exposure"] == exp],
+  #     flim.FEATURES,
+  #     "concentration",
+  #   )
+  #   for exp in df["exposure"].unique()
+  # ]
 
   # Dosage test
   tests += [
@@ -120,6 +120,7 @@ def lr_test(df: pd.DataFrame) -> dict:
 
     scores = pd.DataFrame(columns=["model",
                                    "R² mean", "R² std",
+                                   "RMSE mean", "RMSE std",
                                    "time"])
     for name, model in flim.MODELS.items():
       t1 = time.process_time()
@@ -128,9 +129,12 @@ def lr_test(df: pd.DataFrame) -> dict:
           n_repeats=flim.N_REPEATS,
           random_state=flim.RANDOM_STATE)
       cv_r2 = cross_val_score(model, x_train, y_train, cv=kfold)
+      cv_rmse = cross_val_score(model, x_train, y_train, cv=kfold,
+                               scoring="neg_root_mean_squared_error")
       scores.loc[len(scores.index)] = [
           name,
           cv_r2.mean(), cv_r2.std(),
+          cv_rmse.mean(), cv_rmse.std(),
           time.process_time() - t1]
 
       model.fit(x_train, y_train)
