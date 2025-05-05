@@ -107,37 +107,38 @@ def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
         # print(f"{name}: R² = {r2}, MAE = {mae}")
         print(f"{name}: R² = {r2}, MAE = {mae} {flim.UNITS[ylbl]}")
 
-  # R2
-  _fig, _ax = plt.subplots()
+  score_plot_params = [
+    {
+      "means": r2_means,
+      "ylabel": "$R^2$",
+      "axline": True,
+      "filename": "r2",
+    },
+    {
+      "means": mae_means,
+      "ylabel": f"MAE ({flim.UNITS[ylbl]})",
+      "axline": False,
+      "filename": "mae",
+    },
+  ]
 
-  for name in flim.MODELS:
-    plt.plot(exp_or_con, r2_means[name],
-             label=f"$\\mathtt{{{name}}}$")
+  for pp in score_plot_params:
+    _fig, _ax = plt.subplots()
 
-  plt.axhline(y=0, color="k", linestyle="--")
-  plt.xlabel(f"Fixed {fixed_label} ({flim.UNITS[fixed_label]})")
-  plt.ylabel("$R^2$")
-  plt.xticks(exp_or_con)
-  plt.legend()
+    for name in flim.MODELS:
+      plt.plot(exp_or_con, pp["means"][name],
+               label=f"$\\mathtt{{{name}}}$")
 
-  flim.log(f"Saving to {OUT_PATH}/fig-r2-{fixed_label}.pdf...")
-  plt.savefig(f"{OUT_PATH}/fig-r2-{fixed_label}.pdf")
+    if pp["axline"]:
+      plt.axhline(y=0, color="k", linestyle="--")
+    plt.xlabel(f"Fixed {fixed_label} ({flim.UNITS[fixed_label]})")
+    plt.ylabel(pp["ylabel"])
+    plt.xticks(exp_or_con)
+    plt.legend()
 
-  # MAE
-  _fig, _ax = plt.subplots()
-
-  for name in flim.MODELS:
-    plt.plot(exp_or_con, mae_means[name],
-             label=f"$\\mathtt{{{name}}}$")
-
-  plt.axhline(y=0, color="k", linestyle="--")
-  plt.xlabel(f"Fixed {fixed_label} ({flim.UNITS[fixed_label]})")
-  plt.ylabel("MAE")
-  plt.xticks(exp_or_con)
-  plt.legend()
-
-  flim.log(f"Saving to {OUT_PATH}/fig-mae-{fixed_label}.pdf...")
-  plt.savefig(f"{OUT_PATH}/fig-mae-{fixed_label}.pdf")
+    out_fn = f"{OUT_PATH}/fig-{pp['filename']}-{fixed_label}.pdf"
+    flim.log(f"Saving to {out_fn}...")
+    plt.savefig(out_fn)
 
 
 def plot_lr_test() -> None:
@@ -169,7 +170,7 @@ def plot_lr_test() -> None:
       mae = mae_score(y_test, y_pred)
       plt.plot(xi, [y_pred[i] for i in xs],
                label=f"$\\mathtt{{{name}}}, R^2 = {r2:0.4f}, "
-               f"MAE = {mae:5.2f} ({flim.UNITS[y_lbl]})$")
+               f"MAE = {mae:5.2f} {flim.UNITS[y_lbl]}$")
 
     reindexed = x_test.reset_index().reindex(index=xs).sort_index()
     plt.xticks(reindexed.index.values.tolist(),
@@ -224,7 +225,7 @@ def _plot_samples_pred(pdf: pd.DataFrame, label: str, figfn: str) -> None:
   ax.set_xticks([])
   ax.set_xlabel(f"sample (sorted by {label})")
   ax.set_ylabel(f"{label} ({flim.UNITS[label]})")
-  # ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
+  ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
   ax.legend(["test data", "prediction"])
   out_path = f"{OUT_PATH}/fig-{figfn}-pred.pdf"
   flim.log(f"Saving to {out_path}...")
@@ -259,7 +260,7 @@ def plot_nn() -> None:
   Plot figures associated with neural networks results.
   """
   pdf, folds_df = nn_test.load_results()
-  _plot_real_v_predicted(pdf, "dosage", "nn")
+  # _plot_real_v_predicted(pdf, "dosage", "nn")
   _plot_samples_pred(pdf, "dosage", "nn")
   _plot_fold_convergence(folds_df, "nn")
 
@@ -269,7 +270,7 @@ def plot_cnn() -> None:
   Plot figures associated with convolutional neural networks results.
   """
   pdf, folds_df = nn_test.load_results()
-  _plot_real_v_predicted(pdf, "dosage", "cnn")
+  # _plot_real_v_predicted(pdf, "dosage", "cnn")
   _plot_samples_pred(pdf, "dosage", "cnn")
   _plot_fold_convergence(folds_df, "cnn")
 

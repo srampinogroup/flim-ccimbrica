@@ -48,27 +48,27 @@ def generate_tests(df: pd.DataFrame) -> list[LRTest]:
   both (dosage). See ``LRTest`` dataclass.
   """
   tests = []
-  # # Fixed concentration tests
-  # tests += [
-  #   LRTest(
-  #     f"concentration = {con} µg/ml",
-  #     df[df["concentration"] == con],
-  #     flim.FEATURES,
-  #     "exposure",
-  #   )
-  #   for con in df["concentration"].unique()
-  # ]
+  # Fixed concentration tests
+  tests += [
+    LRTest(
+      f"concentration = {con} µg/ml",
+      df[df["concentration"] == con],
+      flim.FEATURES,
+      "exposure",
+    )
+    for con in df["concentration"].unique()
+  ]
 
-  # # Fixed exposure tests
-  # tests += [
-  #   LRTest(
-  #     f"exposure = {exp} h",
-  #     df[df["exposure"] == exp],
-  #     flim.FEATURES,
-  #     "concentration",
-  #   )
-  #   for exp in df["exposure"].unique()
-  # ]
+  # Fixed exposure tests
+  tests += [
+    LRTest(
+      f"exposure = {exp} h",
+      df[df["exposure"] == exp],
+      flim.FEATURES,
+      "concentration",
+    )
+    for exp in df["exposure"].unique()
+  ]
 
   # Dosage test
   tests += [
@@ -116,32 +116,35 @@ def lr_test(df: pd.DataFrame) -> dict:
         "y_train": y_train,
         "y_test": y_test,
         "y_pred": {},
+        "scores": None,
       }
 
     scores = pd.DataFrame(columns=["model",
                                    "R² mean", "R² std",
-                                   "MSE mean", "MSE std",
+                                   "MAE mean", "MAE std",
                                    "time"])
     for name, model in flim.MODELS.items():
-      t1 = time.process_time()
       kfold = RepeatedKFold(
           n_splits=test.n_splits,
           n_repeats=flim.N_REPEATS,
           random_state=flim.RANDOM_STATE)
       cv_r2 = cross_val_score(model, x_train, y_train, cv=kfold)
-      cv_mse = cross_val_score(model, x_train, y_train, cv=kfold,
-                               scoring="neg_mean_squared_error")
-      scores.loc[len(scores.index)] = [
-          name,
-          cv_r2.mean(), cv_r2.std(),
-          cv_mse.mean(), cv_mse.std(),
-          time.process_time() - t1]
+      cv_mae = cross_val_score(model, x_train, y_train, cv=kfold,
+                               scoring="neg_mean_absolute_error")
 
+      t1 = time.process_time()
       model.fit(x_train, y_train)
       y_pred = model.predict(x_test)
 
+      scores.loc[len(scores.index)] = [
+          name,
+          cv_r2.mean(), cv_r2.std(),
+          cv_mae.mean(), cv_mae.std(),
+          time.process_time() - t1]
+
       lr_results[test.name]["y_pred"][name] = y_pred
 
+    lr_results[test.name]["scores"] = scores
     print(scores)
 
   flim.log(f"Tests done in {time.process_time() - t0} s.")
