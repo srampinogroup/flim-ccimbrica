@@ -13,6 +13,8 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import RepeatedKFold
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import RepeatedStratifiedKFold
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pandas
 jsonpickle_pandas.register_handlers()
@@ -38,7 +40,7 @@ class LRTest(dict):
   df: pd.DataFrame
   x_lbl: list[str]
   y_lbl: str
-  n_splits: int = 8
+  n_splits: int = 5
 
 
 def generate_tests(df: pd.DataFrame) -> list[LRTest]:
@@ -77,7 +79,6 @@ def generate_tests(df: pd.DataFrame) -> list[LRTest]:
       df,
       flim.FEATURES,
       "dosage",
-      5,
       # 10,
     ),
   ]
@@ -124,12 +125,15 @@ def lr_test(df: pd.DataFrame) -> dict:
                                    "MAE mean", "MAE std",
                                    "time"])
     for name, model in flim.MODELS.items():
-      kfold = RepeatedKFold(
+      # kfold = RepeatedKFold(
+      kfold = RepeatedStratifiedKFold(
           n_splits=test.n_splits,
           n_repeats=flim.N_REPEATS,
           random_state=flim.RANDOM_STATE)
+      # kfold = RepeatedStratifiedKFold(
+      #     n_splits=test.n_splits)
       cv_r2 = cross_val_score(model, x_train, y_train, cv=kfold)
-      cv_mae = cross_val_score(model, x_train, y_train, cv=kfold,
+      cv_mae = -cross_val_score(model, x_train, y_train, cv=kfold,
                                scoring="neg_mean_absolute_error")
 
       t1 = time.process_time()

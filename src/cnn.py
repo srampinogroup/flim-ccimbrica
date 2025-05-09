@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import KFold
 from sklearn.metrics import r2_score
+from sklearn.metrics import mean_absolute_error as mae_score
 os.environ["KERAS_BACKEND"] = "jax"
 import keras
 from keras import layers
@@ -175,6 +176,8 @@ def cnn_explore(df: pd.DataFrame) -> None:
   print(pdf.sample(10))
   flim.log("R²")
   print(r2_score(pdf["y_test"], pdf["y_pred"]))
+  flim.log("MAE")
+  print(mae_score(pdf["y_test"], pdf["y_pred"]))
 
   save_results(pdf, folds_df)
 

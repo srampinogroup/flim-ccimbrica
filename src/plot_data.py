@@ -21,6 +21,15 @@ from plot_util import slug_figure_name, setup_defaults
 from plot_util import OUT_PATH, FIG_WIDTH, FIG_HEIGHT
 
 
+# def _format_r2(r2: float, r2_std: float) -> str:
+#   return f"{r2:0.2f} ± {r2_std:0.2f}"
+def _format_r2(r2: float) -> str:
+  return f"{r2:0.2f}"
+
+# def _format_mae(mae: float, mae_std: float) -> str:
+#   return f"{np.abs(mae):.0f} ± {mae_std:.0f}"
+
+
 def plot_feature_importances(df: pd.DataFrame) -> None:
   """
   Plot forest estimator feature importance from FLIM dataset.
@@ -153,6 +162,7 @@ def plot_lr_test() -> None:
     y_lbl = test["y_lbl"]
     x_test = test["x_test"]
     y_test = test["y_test"]
+    scores = test["scores"]
 
     xi = range(len(y_test))
     xs = sorted(xi, key=y_test.iloc.__getitem__)
@@ -167,10 +177,18 @@ def plot_lr_test() -> None:
 
     for name, y_pred in test["y_pred"].items():
       r2 = r2_score(y_test, y_pred)
-      mae = mae_score(y_test, y_pred)
+      # mae = mae_score(y_test, y_pred)
+      model_scores = scores[scores["model"] == name]
+      # r2_cv = model_scores["R² mean"].values[0]
+      # mae_cv = model_scores["MAE mean"].values[0]
+      # r2_std = model_scores["R² std"].values[0]
+      # mae_std = model_scores["MAE std"].values[0]
       plt.plot(xi, [y_pred[i] for i in xs],
-               label=f"$\\mathtt{{{name}}}, R^2 = {r2:0.4f}, "
-               f"MAE = {mae:5.2f} {flim.UNITS[y_lbl]}$")
+               label=f"$\\mathtt{{{name}}}, "
+                     f"R^2 = {_format_r2(r2)}$")
+                     # f"R^2 = {_format_r2(r2, r2_std)}, ")
+                     # f"\\text{{MAE}} = {_format_mae(mae, mae_std)}$ "
+                     # f"{flim.UNITS[y_lbl]}")
 
     reindexed = x_test.reset_index().reindex(index=xs).sort_index()
     plt.xticks(reindexed.index.values.tolist(),
@@ -203,7 +221,7 @@ def _plot_real_v_predicted(pdf, label: str, figfn: str) -> None:
   units = flim.UNITS[label]
   ax.set_xlabel(f"real {label} ({units})")
   ax.set_ylabel(f"predicted ({units})")
-  ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
+  ax.set_title(f"Test $R^2 = {_format_r2(r2_score(test, pred))}$")
   out_path = f"{OUT_PATH}/fig-{figfn}-rp.pdf"
   flim.log(f"Saving to {out_path}...")
   plt.savefig(out_path)
@@ -225,7 +243,7 @@ def _plot_samples_pred(pdf: pd.DataFrame, label: str, figfn: str) -> None:
   ax.set_xticks([])
   ax.set_xlabel(f"sample (sorted by {label})")
   ax.set_ylabel(f"{label} ({flim.UNITS[label]})")
-  ax.set_title(f"Test $R^2 = {r2_score(test, pred):.4f}$")
+  ax.set_title(f"Test $R^2 = {_format_r2(r2_score(test, pred))}$")
   ax.legend(["test data", "prediction"])
   out_path = f"{OUT_PATH}/fig-{figfn}-pred.pdf"
   flim.log(f"Saving to {out_path}...")
@@ -248,7 +266,7 @@ def _plot_fold_convergence(folds_df: pd.DataFrame, figfn: str) \
   plt.xlabel("Epoch")
   plt.ylabel("$R^2$")
   plt.legend(["train", "validation"])
-  plt.title(f"Test $R^2 = {test_r2:.4f}$")
+  plt.title(f"Test $R^2 = {_format_r2(test_r2)}$")
 
   out_path = f"{OUT_PATH}/fig-{figfn}-train.pdf"
   flim.log(f"Saving to {out_path}...")
