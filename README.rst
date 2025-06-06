@@ -2,6 +2,7 @@ flim-ccimbrica
 ##############
 
 Machine learning analysis on FLIM measurements of Coccomyxa cimbrica exposed to Cu(II).
+See associated paper with DOI `10.1021/acsomega.5c04304 <https://doi.org/10.1021/acsomega.5c04304>`_.
 
 Data set
 ********
