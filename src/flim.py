@@ -7,7 +7,7 @@ library with it. Other computations that need to be done several
 times for averaging are done ``N_REPEATS`` times. The estimators used
 are accessible via the ``MODELS`` dictionary.
 
-See ***DOI PAPER.
+See http://doi.org/10.1021/acsomega.5c04304.
 """
 import sys
 import warnings
