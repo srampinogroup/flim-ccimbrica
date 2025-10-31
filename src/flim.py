@@ -233,9 +233,6 @@ def add_decay_fit_features(df: pd.DataFrame) -> None:
   """
   Add exponential decay fit parameters (in place).
   """
-  def exp_decay(x, a, b, c):
-    return a * np.exp(-b * x) + c
-
   def map_fit(row):
     time = np.array(row["time"])
     counts = np.array(row["counts"])
