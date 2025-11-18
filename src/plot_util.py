@@ -20,7 +20,7 @@ def alternate_every_xtick(axes: Axes,
                           labels: list[int | float | str],
                           pad: int = 12) -> None:
   """
-  Set xticks on an axis suck that every label is displayed, but
+  Set xticks on an axis such that every label is displayed, but
   every other one is offset vertically to reduce overlap. Offset
   in points is set by the offset.
   Use in place of ``plt.xtick(ticks, labels)``.
