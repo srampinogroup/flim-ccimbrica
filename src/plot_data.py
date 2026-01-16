@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
-# from sklearn.metrics import mean_squared_error as mse_score
 from sklearn.metrics import mean_absolute_error as mae_score
 
 import flim
@@ -21,13 +20,8 @@ from plot_util import slug_figure_name, setup_defaults
 from plot_util import OUT_PATH, FIG_WIDTH, FIG_HEIGHT
 
 
-# def _format_r2(r2: float, r2_std: float) -> str:
-#   return f"{r2:0.2f} ± {r2_std:0.2f}"
 def _format_r2(r2: float) -> str:
   return f"{r2:0.2f}"
-
-# def _format_mae(mae: float, mae_std: float) -> str:
-#   return f"{np.abs(mae):.0f} ± {mae_std:.0f}"
 
 
 def plot_feature_importances(df: pd.DataFrame) -> None:
@@ -65,10 +59,6 @@ def plot_forest(df: pd.DataFrame) -> None:
   """
   ylbl = "dosage"
   forest = flim.MODELS["For"]
-  # x_train, x_test, y_train, y_test = train_test_split(
-  #     df[flim.FEATURES], df[ylbl],
-  #     test_size=flim.TEST_SIZE,
-  #     random_state=flim.RANDOM_STATE)
   forest.fit(df[flim.FEATURES], df[ylbl])
 
   _fig, _ax = plt.subplots(figsize=(4, 4), dpi=800)
@@ -113,7 +103,6 @@ def plot_r2_fixed(df: pd.DataFrame, fixed_label: str) -> None:
         mae = mae_score(y_test, y_pred)
         r2_means[name][i] += r2 / flim.N_REPEATS
         mae_means[name][i] += mae / flim.N_REPEATS
-        # print(f"{name}: R² = {r2}, MAE = {mae}")
         print(f"{name}: R² = {r2}, MAE = {mae} {flim.UNITS[ylbl]}")
 
   score_plot_params = [
@@ -177,12 +166,7 @@ def plot_lr_test() -> None:
 
     for name, y_pred in test["y_pred"].items():
       r2 = r2_score(y_test, y_pred)
-      # mae = mae_score(y_test, y_pred)
       model_scores = scores[scores["model"] == name]
-      # r2_cv = model_scores["R² mean"].values[0]
-      # mae_cv = model_scores["MAE mean"].values[0]
-      # r2_std = model_scores["R² std"].values[0]
-      # mae_std = model_scores["MAE std"].values[0]
       plt.plot(xi, [y_pred[i] for i in xs],
                label=f"$\\mathtt{{{name}}}, "
                      f"R^2 = {_format_r2(r2)}$")
@@ -278,7 +262,6 @@ def plot_nn() -> None:
   Plot figures associated with neural networks results.
   """
   pdf, folds_df = nn_test.load_results()
-  # _plot_real_v_predicted(pdf, "dosage", "nn")
   _plot_samples_pred(pdf, "dosage", "nn")
   _plot_fold_convergence(folds_df, "nn")
 
@@ -287,8 +270,7 @@ def plot_cnn() -> None:
   """
   Plot figures associated with convolutional neural networks results.
   """
-  pdf, folds_df = nn_test.load_results()
-  # _plot_real_v_predicted(pdf, "dosage", "cnn")
+  pdf, folds_df = cnn.load_results()
   _plot_samples_pred(pdf, "dosage", "cnn")
   _plot_fold_convergence(folds_df, "cnn")
 
